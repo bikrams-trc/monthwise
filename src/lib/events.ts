@@ -1,5 +1,6 @@
 import { PREDEFINED_OBSERVANCES } from '../data/observances'
 import {
+  YEAR_DEFAULTS,
   hasYearDefaults,
   nanakshahiMonthFor,
   pooranmashiDaysFor,
@@ -246,6 +247,34 @@ export function getEventsForYear(year: number): Record<number, CalendarEvent[]> 
     byMonth[month] = getEventsForMonth(year, month)
   }
   return byMonth
+}
+
+/** Years that ship with Pooranmashi / Sangrand chart dates (currently 2026, 2027). */
+export function chartYearsAvailable(): number[] {
+  return Object.keys(YEAR_DEFAULTS)
+    .map(Number)
+    .filter((y) => Number.isFinite(y))
+    .sort((a, b) => a - b)
+}
+
+/**
+ * Eagerly import chart defaults for every month of a year.
+ * Reconciles Pooranmashi / Sangrand to the year table and marks months seeded.
+ */
+export function importYearChart(year: number): { ok: boolean; months: number; events: number } {
+  if (!hasYearDefaults(year)) return { ok: false, months: 0, events: 0 }
+
+  let events = readEvents()
+  const seeded = readSeeded()
+  for (let month = 0; month < 12; month++) {
+    events = reconcileChartDefaults(events, year, month)
+    seeded.add(monthKey(year, month))
+  }
+  writeSeeded(seeded)
+  writeEvents(events)
+
+  const yearEvents = events.filter((e) => e.year === year && isDefaultTemplate(e.templateId))
+  return { ok: true, months: 12, events: yearEvents.length }
 }
 
 export function addEvent(
