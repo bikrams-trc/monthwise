@@ -114,7 +114,7 @@ export default function App() {
               </g>
             ))}
           </svg>
-          <img className="hero-moon" src="/hero-moon.png" alt="" width={294} height={213} decoding="async" />
+          <img className="hero-moon" src="/hero-moon.png" alt="" width={354} height={352} decoding="async" />
         </div>
         <svg className="khanda" viewBox="0 0 100 100" aria-hidden="true">
           <circle cx="50" cy="50" r="28" fill="none" stroke="#f2c14e" strokeWidth="3" />
