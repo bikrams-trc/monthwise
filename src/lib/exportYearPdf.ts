@@ -22,7 +22,9 @@ const COLORS = {
   muted: [90, 100, 120] as const,
 }
 
-const MONTH_ACCENTS = [
+type RGB = readonly [number, number, number]
+
+const MONTH_ACCENTS: RGB[] = [
   COLORS.kesri,
   COLORS.akali,
   COLORS.field,
@@ -35,7 +37,19 @@ const MONTH_ACCENTS = [
   COLORS.gold,
   COLORS.akali,
   COLORS.kesri,
-] as const
+]
+
+function fill(doc: import('jspdf').jsPDF, c: RGB): void {
+  doc.setFillColor(c[0], c[1], c[2])
+}
+
+function stroke(doc: import('jspdf').jsPDF, c: RGB): void {
+  doc.setDrawColor(c[0], c[1], c[2])
+}
+
+function textColor(doc: import('jspdf').jsPDF, c: RGB): void {
+  doc.setTextColor(c[0], c[1], c[2])
+}
 
 const iconCache = new Map<string, string>()
 
@@ -47,12 +61,12 @@ function drawFloralBloom(
   r: number,
 ): void {
   const petalR = r * 0.55
-  const petalColors = [COLORS.gold, COLORS.kesri, COLORS.akali, COLORS.phulkari] as const
+  const petalColors: RGB[] = [COLORS.gold, COLORS.kesri, COLORS.akali, COLORS.phulkari]
   for (let i = 0; i < 8; i++) {
     const a = (i * Math.PI) / 4
     const px = cx + Math.cos(a) * r * 0.62
     const py = cy + Math.sin(a) * r * 0.62
-    doc.setFillColor(...petalColors[i % petalColors.length])
+    fill(doc, petalColors[i % petalColors.length]!)
     doc.circle(px, py, petalR, 'F')
   }
   doc.setFillColor(...COLORS.kesri)
@@ -68,9 +82,9 @@ function drawFloralBud(
   cy: number,
   r: number,
 ): void {
-  doc.setFillColor(...COLORS.gold)
+  doc.setFillColor(...COLORS.akali)
   doc.circle(cx, cy, r, 'F')
-  doc.setFillColor(...COLORS.kesri)
+  doc.setFillColor(...COLORS.gold)
   doc.circle(cx, cy, r * 0.45, 'F')
 }
 
@@ -258,17 +272,17 @@ export async function exportYearToPdf(
     const x = marginX + col * (cellW + gapX)
     const y = marginTop + row * (cellH + gapY)
 
-    const accent = MONTH_ACCENTS[month]
+    const accent = MONTH_ACCENTS[month]!
 
-    doc.setFillColor(...COLORS.panel)
+    fill(doc, COLORS.panel)
     doc.roundedRect(x, y, cellW, cellH, 6, 6, 'F')
-    doc.setDrawColor(...COLORS.panelLine)
+    stroke(doc, COLORS.panelLine)
     doc.setLineWidth(0.8)
     doc.roundedRect(x, y, cellW, cellH, 6, 6, 'S')
-    doc.setFillColor(...accent)
+    fill(doc, accent)
     doc.rect(x, y, 4, cellH, 'F')
 
-    doc.setTextColor(...COLORS.title)
+    textColor(doc, COLORS.title)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(11)
     doc.text(MONTH_NAMES[month], x + 12, y + 17)
@@ -301,19 +315,20 @@ export async function exportYearToPdf(
         const png = iconPng.get(e.id)
         if (png) doc.addImage(png, 'PNG', x + 10, ey, 11, 11)
         else {
-          doc.setFillColor(...accent)
+          fill(doc, accent)
           doc.circle(x + 15.5, ey + 5.5, 4.5, 'F')
         }
         const isSangrand = e.templateId === 'sangrand'
         const isPooran = e.templateId === 'pooranmashi'
+        const dayColor: RGB = isSangrand ? COLORS.akali : isPooran ? COLORS.gold : COLORS.kesri
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(9)
-        doc.setTextColor(...(isSangrand ? COLORS.akali : isPooran ? COLORS.gold : COLORS.kesri))
+        textColor(doc, dayColor)
         const dayLabel = e.day == null ? 'Not set' : String(e.day).padStart(2, '0')
         doc.text(dayLabel, x + 26, ey + 9)
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(9)
-        doc.setTextColor(...COLORS.ink)
+        textColor(doc, COLORS.ink)
         const name = doc.splitTextToSize(e.name, cellW - 60)
         doc.text(name[0] ?? e.name, x + 48, ey + 9)
         ey += lineH
