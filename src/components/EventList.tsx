@@ -1,8 +1,13 @@
 import type { CalendarEvent } from '../lib/events'
+import { WEEKDAYS } from '../lib/events'
 import { iconForEvent } from '../lib/eventIcons'
 import type { DayWeather } from '../lib/weather'
 import type { WeatherStatus } from '../hooks/useEventWeather'
 import { WeatherIcon } from './WeatherIcon'
+
+function weekdayFor(event: CalendarEvent): string {
+  return WEEKDAYS[new Date(event.year, event.month, event.day).getDay()] ?? ''
+}
 
 type Props = {
   events: CalendarEvent[]
@@ -72,7 +77,8 @@ export function EventList({
                   decoding="async"
                 />
                 <div className="event-day" aria-hidden="true">
-                  {e.day}
+                  <span className="event-day-num">{e.day}</span>
+                  <span className="event-day-weekday">{weekdayFor(e)}</span>
                 </div>
                 <div className="event-body">
                   <strong>{e.name}</strong>
