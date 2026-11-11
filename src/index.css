@@ -313,8 +313,10 @@ img { max-width: 100%; display: block; }
 }
 .calendar-panel { padding: 0.55rem; overflow: auto; }
 .calendar-panel--compact .calendar-heading {
-  margin: 0 0 0.55rem; font-family: var(--font-brand);
-  font-size: 1.25rem; color: var(--marigold);
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: 1.25rem;
+  color: var(--marigold);
 }
 .weekday-row, .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.22rem; }
 .weekday-row { margin-bottom: 0.3rem; }
