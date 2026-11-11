@@ -1,5 +1,5 @@
 import type { CalendarEvent } from '../lib/events'
-import { WEEKDAYS } from '../lib/events'
+import { MONTH_NAMES, MONTH_NAMES_PA, WEEKDAYS } from '../lib/events'
 import { iconForEvent } from '../lib/eventIcons'
 import type { DayWeather } from '../lib/weather'
 import type { WeatherStatus } from '../hooks/useEventWeather'
@@ -11,6 +11,8 @@ function weekdayFor(event: CalendarEvent): string {
 }
 
 type Props = {
+  year: number
+  month: number
   events: CalendarEvent[]
   onEdit: (event: CalendarEvent) => void
   onDelete: (id: string) => void
@@ -30,6 +32,8 @@ function weatherStatusText(status: WeatherStatus | undefined): string | null {
 }
 
 export function EventList({
+  year,
+  month,
   events,
   onEdit,
   onDelete,
@@ -41,10 +45,15 @@ export function EventList({
   const statusText = weatherEnabled ? weatherStatusText(weatherStatus) : null
   const showRetry =
     weatherEnabled && (weatherStatus === 'denied' || weatherStatus === 'error') && onRetryWeather
+  const monthName = MONTH_NAMES[month] ?? 'Month'
+  const monthNamePa = MONTH_NAMES_PA[month]
 
   return (
     <section className="events-panel events-panel--main" aria-labelledby="events-heading">
-      <h3 id="events-heading">This month</h3>
+      <h3 id="events-heading">
+        {monthName}
+        {monthNamePa ? <span className="pa"> {monthNamePa}</span> : null}
+      </h3>
       <p className="events-sub">
         Pooranmashi and Sangrand are added by default. Chart years use lunar dates; otherwise set the day when you know it.
       </p>

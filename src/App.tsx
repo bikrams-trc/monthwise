@@ -189,6 +189,8 @@ export default function App() {
 
         <div className="layout">
           <EventList
+            year={year}
+            month={month}
             events={events}
             onEdit={(event) => setModal({ mode: 'edit', event })}
             onDelete={handleDelete}
