@@ -1,5 +1,11 @@
 import type { CalendarEvent } from '../lib/events'
-import { daysInMonth, firstWeekday, WEEKDAYS } from '../lib/events'
+import {
+  MONTH_NAMES,
+  MONTH_NAMES_PA,
+  daysInMonth,
+  firstWeekday,
+  WEEKDAYS,
+} from '../lib/events'
 import { PREDEFINED_OBSERVANCES } from '../data/observances'
 
 type Props = {
@@ -7,6 +13,8 @@ type Props = {
   month: number
   events: CalendarEvent[]
   animKey: string
+  onPrevMonth: () => void
+  onNextMonth: () => void
 }
 
 function kindFor(event: CalendarEvent): string {
@@ -14,7 +22,14 @@ function kindFor(event: CalendarEvent): string {
   return t?.kind ?? 'custom'
 }
 
-export function MonthGrid({ year, month, events, animKey }: Props) {
+export function MonthGrid({
+  year,
+  month,
+  events,
+  animKey,
+  onPrevMonth,
+  onNextMonth,
+}: Props) {
   const total = daysInMonth(year, month)
   const start = firstWeekday(year, month)
   const today = new Date()
@@ -34,7 +49,23 @@ export function MonthGrid({ year, month, events, animKey }: Props) {
 
   return (
     <aside className="calendar-panel calendar-panel--compact" key={animKey}>
-      <h3 className="calendar-heading">Glance</h3>
+      <div className="calendar-head">
+        <h3 className="calendar-heading">Glance</h3>
+        <div className="month-nav month-nav--glance">
+          <button type="button" className="btn-icon" aria-label="Previous month" onClick={onPrevMonth}>
+            ‹
+          </button>
+          <div className="month-title">
+            <h2>
+              {MONTH_NAMES[month]} {year}
+              <span className="pa">{MONTH_NAMES_PA[month]}</span>
+            </h2>
+          </div>
+          <button type="button" className="btn-icon" aria-label="Next month" onClick={onNextMonth}>
+            ›
+          </button>
+        </div>
+      </div>
       <div className="weekday-row" aria-hidden="true">
         {WEEKDAYS.map((w) => (
           <div key={w} className="weekday">
