@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react'
-import { PREDEFINED_OBSERVANCES, sangrandDayForMonth } from '../data/observances'
+import { PREDEFINED_OBSERVANCES } from '../data/observances'
+import { pooranmashiDayFor, sangrandDayFor } from '../data/yearDefaults'
 import type { CalendarEvent } from '../lib/events'
 import { daysInMonth } from '../lib/events'
 
@@ -19,7 +20,9 @@ export function EventModal({ mode, year, month, initial, onClose, onSave, onDele
   const [templateId, setTemplateId] = useState(initial?.templateId ?? 'pooranmashi')
   const [name, setName] = useState(initial?.name ?? 'Pooranmashi')
   const [namePa, setNamePa] = useState(initial?.namePa ?? 'ਪੂਰਨਮਾਸ਼ੀ')
-  const [day, setDay] = useState(initial?.day ?? 15)
+  const [day, setDay] = useState(
+    initial?.day ?? Math.min(pooranmashiDayFor(year, month), maxDay),
+  )
   const [note, setNote] = useState(initial?.note ?? '')
 
   useEffect(() => {
@@ -43,7 +46,8 @@ export function EventModal({ mode, year, month, initial, onClose, onSave, onDele
     setName(t.name)
     setNamePa(t.namePa ?? '')
     setNote(t.note ?? '')
-    if (id === 'sangrand') setDay(sangrandDayForMonth(month))
+    if (id === 'sangrand') setDay(Math.min(sangrandDayFor(year, month), maxDay))
+    else if (id === 'pooranmashi') setDay(Math.min(pooranmashiDayFor(year, month), maxDay))
     else if (t.defaultDay) setDay(Math.min(t.defaultDay, maxDay))
   }
 

@@ -164,7 +164,7 @@ export default function App() {
         </div>
 
         <p className="footer-note">
-          Events stay on this device (localStorage). Defaults: Pooranmashi &amp; Sangrand each month.
+          Events stay on this device (localStorage). Defaults: Pooranmashi &amp; Sangrand each month (2027 uses lunar chart dates).
         </p>
       </main>
 
