@@ -1,113 +1,119 @@
 import type { CalendarEvent } from '../lib/events'
-import {
-  MONTH_NAMES,
-  MONTH_NAMES_PA,
-  daysInMonth,
-  firstWeekday,
-  WEEKDAYS,
-} from '../lib/events'
-import { PREDEFINED_OBSERVANCES } from '../data/observances'
+import { MONTH_NAMES, MONTH_NAMES_PA, WEEKDAYS } from '../lib/events'
+import { iconForEvent } from '../lib/eventIcons'
 
 type Props = {
   year: number
-  month: number
-  events: CalendarEvent[]
-  animKey: string
-  onPrevMonth: () => void
-  onNextMonth: () => void
+  selectedMonth: number
+  eventsByMonth: Record<number, CalendarEvent[]>
+  onSelectMonth: (month: number) => void
 }
 
-function kindFor(event: CalendarEvent): string {
-  const t = PREDEFINED_OBSERVANCES.find((o) => o.id === event.templateId)
-  return t?.kind ?? 'custom'
+const MONTH_ACCENTS = [
+  'kesri',
+  'akali',
+  'field',
+  'phulkari',
+  'gold',
+  'kesri',
+  'akali',
+  'field',
+  'phulkari',
+  'gold',
+  'akali',
+  'kesri',
+] as const
+
+function weekdayLabel(year: number, month: number, day: number): string {
+  return WEEKDAYS[new Date(year, month, day).getDay()] ?? ''
+}
+
+function eventDisplayName(e: CalendarEvent): string {
+  const base = e.name?.trim() || 'Event'
+  if (e.templateId === 'sangrand') {
+    const fromNote = e.note?.match(/^Start of\s+(.+)$/i)?.[1]?.trim()
+    if (fromNote) return `Sangrand · ${fromNote}`
+    if (!/sangrand/i.test(base)) return `Sangrand · ${base}`
+  }
+  return base
+}
+
+function dayTone(e: CalendarEvent): 'sangrand' | 'pooran' | 'other' {
+  if (e.templateId === 'sangrand') return 'sangrand'
+  if (e.templateId === 'pooranmashi') return 'pooran'
+  return 'other'
 }
 
 export function MonthGrid({
   year,
-  month,
-  events,
-  animKey,
-  onPrevMonth,
-  onNextMonth,
+  selectedMonth,
+  eventsByMonth,
+  onSelectMonth,
 }: Props) {
-  const total = daysInMonth(year, month)
-  const start = firstWeekday(year, month)
-  const today = new Date()
-  const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month
-
-  const byDay = new Map<number, CalendarEvent[]>()
-  for (const e of events) {
-    if (e.day == null) continue
-    const list = byDay.get(e.day) ?? []
-    list.push(e)
-    byDay.set(e.day, list)
-  }
-
-  const cells: Array<{ day: number | null; index: number }> = []
-  for (let i = 0; i < start; i++) cells.push({ day: null, index: i })
-  for (let d = 1; d <= total; d++) cells.push({ day: d, index: start + d - 1 })
-
   return (
-    <div className="calendar-stack" key={animKey}>
-      <div className="month-nav-panel">
-        <div className="month-nav month-nav--panel">
-          <button type="button" className="btn-icon" aria-label="Previous month" onClick={onPrevMonth}>
-            ‹
-          </button>
-          <div className="month-title">
-            <h2>
-              {MONTH_NAMES[month]} {year}
-              <span className="pa">{MONTH_NAMES_PA[month]}</span>
-            </h2>
-          </div>
-          <button type="button" className="btn-icon" aria-label="Next month" onClick={onNextMonth}>
-            ›
-          </button>
-        </div>
+    <aside className="year-tiles-panel" aria-label={`${year} month tiles`}>
+      <div className="year-tiles-head">
+        <h3 className="calendar-heading">MonthWise {year}</h3>
+        <p className="year-tiles-sub">Tap a month to view its observances</p>
       </div>
-      <aside className="calendar-panel calendar-panel--compact">
-        <h3 className="calendar-heading">Glance</h3>
-        <div className="weekday-row" aria-hidden="true">
-          {WEEKDAYS.map((w) => (
-            <div key={w} className="weekday">
-              {w}
-            </div>
-          ))}
-        </div>
-        <div className="day-grid" role="grid" aria-label="Month overview">
-          {cells.map(({ day, index }) => {
-            if (day === null) {
-              return <div key={`e-${index}`} className="day-cell empty" />
-            }
-            const dayEvents = byDay.get(day) ?? []
-            const isToday = isCurrentMonth && today.getDate() === day
-            return (
-              <div
-                key={day}
-                className={[
-                  'day-cell',
-                  dayEvents.length ? 'has-events' : '',
-                  isToday ? 'today' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                style={{ animationDelay: `${index * 12}ms` }}
-                role="gridcell"
-                aria-label={`${day}${dayEvents.length ? `, ${dayEvents.length} events` : ''}`}
-              >
-                <span className="day-num">{day}</span>
-                {dayEvents.length > 0 && (
-                  <span className="day-dots" aria-hidden="true">
-                    {dayEvents.slice(0, 3).map((e) => (
-                      <span key={e.id} className={`dot ${kindFor(e)}`} />
-                    ))}
-                  </span>
+      <div className="year-tiles-grid">
+        {MONTH_NAMES.map((name, month) => {
+          const accent = MONTH_ACCENTS[month]
+          const events = [...(eventsByMonth[month] ?? [])]
+            .sort((a, b) => (a.day ?? 99) - (b.day ?? 99) || a.name.localeCompare(b.name))
+            .slice(0, 4)
+          const selected = month === selectedMonth
+          return (
+            <button
+              key={month}
+              type="button"
+              className={[
+                'month-tile',
+                `month-tile--${accent}`,
+                selected ? 'is-selected' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              onClick={() => onSelectMonth(month)}
+              aria-pressed={selected}
+              aria-label={`${name} ${year}`}
+            >
+              <span className="month-tile-accent" aria-hidden="true" />
+              <span className="month-tile-title">
+                {name}
+                <span className="pa">{MONTH_NAMES_PA[month]}</span>
+              </span>
+              <span className="month-tile-events">
+                {events.length === 0 ? (
+                  <span className="month-tile-empty">No events</span>
+                ) : (
+                  events.map((e) => {
+                    const tone = dayTone(e)
+                    const dayLabel =
+                      e.day == null
+                        ? 'Not set'
+                        : `${String(e.day).padStart(2, '0')} ${weekdayLabel(year, month, e.day)}`
+                    return (
+                      <span key={e.id} className="month-tile-row">
+                        <img
+                          className="month-tile-icon"
+                          src={iconForEvent(e.templateId)}
+                          alt=""
+                          width={14}
+                          height={14}
+                          decoding="async"
+                        />
+                        <span className={`month-tile-day month-tile-day--${tone}`}>{dayLabel}</span>
+                        <span className="month-tile-name">{eventDisplayName(e)}</span>
+                      </span>
+                    )
+                  })
                 )}
-              </div>
-            )
-          })}
-        </div>
-      </aside>
-    </div>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </aside>
   )
 }
