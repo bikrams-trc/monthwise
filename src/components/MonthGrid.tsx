@@ -48,10 +48,9 @@ export function MonthGrid({
   for (let d = 1; d <= total; d++) cells.push({ day: d, index: start + d - 1 })
 
   return (
-    <aside className="calendar-panel calendar-panel--compact" key={animKey}>
-      <div className="calendar-head">
-        <h3 className="calendar-heading">Glance</h3>
-        <div className="month-nav month-nav--glance">
+    <div className="calendar-stack" key={animKey}>
+      <div className="month-nav-panel">
+        <div className="month-nav month-nav--panel">
           <button type="button" className="btn-icon" aria-label="Previous month" onClick={onPrevMonth}>
             ‹
           </button>
@@ -66,46 +65,49 @@ export function MonthGrid({
           </button>
         </div>
       </div>
-      <div className="weekday-row" aria-hidden="true">
-        {WEEKDAYS.map((w) => (
-          <div key={w} className="weekday">
-            {w}
-          </div>
-        ))}
-      </div>
-      <div className="day-grid" role="grid" aria-label="Month overview">
-        {cells.map(({ day, index }) => {
-          if (day === null) {
-            return <div key={`e-${index}`} className="day-cell empty" />
-          }
-          const dayEvents = byDay.get(day) ?? []
-          const isToday = isCurrentMonth && today.getDate() === day
-          return (
-            <div
-              key={day}
-              className={[
-                'day-cell',
-                dayEvents.length ? 'has-events' : '',
-                isToday ? 'today' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              style={{ animationDelay: `${index * 12}ms` }}
-              role="gridcell"
-              aria-label={`${day}${dayEvents.length ? `, ${dayEvents.length} events` : ''}`}
-            >
-              <span className="day-num">{day}</span>
-              {dayEvents.length > 0 && (
-                <span className="day-dots" aria-hidden="true">
-                  {dayEvents.slice(0, 3).map((e) => (
-                    <span key={e.id} className={`dot ${kindFor(e)}`} />
-                  ))}
-                </span>
-              )}
+      <aside className="calendar-panel calendar-panel--compact">
+        <h3 className="calendar-heading">Glance</h3>
+        <div className="weekday-row" aria-hidden="true">
+          {WEEKDAYS.map((w) => (
+            <div key={w} className="weekday">
+              {w}
             </div>
-          )
-        })}
-      </div>
-    </aside>
+          ))}
+        </div>
+        <div className="day-grid" role="grid" aria-label="Month overview">
+          {cells.map(({ day, index }) => {
+            if (day === null) {
+              return <div key={`e-${index}`} className="day-cell empty" />
+            }
+            const dayEvents = byDay.get(day) ?? []
+            const isToday = isCurrentMonth && today.getDate() === day
+            return (
+              <div
+                key={day}
+                className={[
+                  'day-cell',
+                  dayEvents.length ? 'has-events' : '',
+                  isToday ? 'today' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                style={{ animationDelay: `${index * 12}ms` }}
+                role="gridcell"
+                aria-label={`${day}${dayEvents.length ? `, ${dayEvents.length} events` : ''}`}
+              >
+                <span className="day-num">{day}</span>
+                {dayEvents.length > 0 && (
+                  <span className="day-dots" aria-hidden="true">
+                    {dayEvents.slice(0, 3).map((e) => (
+                      <span key={e.id} className={`dot ${kindFor(e)}`} />
+                    ))}
+                  </span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </aside>
+    </div>
   )
 }

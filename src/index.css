@@ -247,24 +247,34 @@ img { max-width: 100%; display: block; }
   font-family: var(--font-pa); font-size: 0.78rem; color: var(--muted);
 }
 .year-jump { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
-.calendar-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+.calendar-stack {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.65rem;
+  min-height: 0;
+  align-content: start;
+}
+.month-nav-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+  padding: 0.55rem 0.7rem;
+  animation: fade-up 0.55s ease both;
+}
+.month-nav--panel {
   justify-content: space-between;
-  gap: 0.45rem 0.75rem;
-  margin-bottom: 0.45rem;
+  width: 100%;
+  gap: 0.55rem;
 }
-.month-nav--glance {
+.month-nav--panel .month-title {
   flex: 1 1 auto;
-  justify-content: flex-end;
-  min-width: 0;
 }
-.month-nav--glance .month-title { flex: 1 1 auto; max-width: 11.5rem; }
-.month-nav--glance .btn-icon {
-  width: 2.1rem;
-  height: 2.1rem;
+.month-nav--panel .btn-icon {
+  width: 2.15rem;
+  height: 2.15rem;
   border-radius: 10px;
+  flex: 0 0 auto;
 }
 .btn-export { border-color: rgba(242, 193, 78, 0.55); color: var(--gold-soft); font-weight: 700; }
 .btn-export:hover:not(:disabled) { background: rgba(242, 193, 78, 0.16); }
@@ -287,7 +297,9 @@ img { max-width: 100%; display: block; }
     grid-template-columns: 1fr;
     overflow: auto;
   }
-  .calendar-panel { max-width: 360px; margin-inline: auto; width: 100%; }
+  .calendar-stack,
+  .calendar-panel,
+  .month-nav-panel { max-width: 360px; margin-inline: auto; width: 100%; }
   .hero-tagline { display: none; }
 }
 .calendar-panel, .events-panel {
@@ -302,7 +314,7 @@ img { max-width: 100%; display: block; }
 }
 .calendar-panel { padding: 0.55rem; overflow: auto; }
 .calendar-panel--compact .calendar-heading {
-  margin: 0;
+  margin: 0 0 0.45rem;
   font-family: var(--font-brand);
   font-size: 1.25rem;
   color: var(--marigold);
