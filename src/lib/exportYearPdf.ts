@@ -22,6 +22,95 @@ const COLORS = {
 
 const iconCache = new Map<string, string>()
 
+/** Phulkari-inspired floral motif (petals around a kesri center). */
+function drawFloralBloom(
+  doc: import('jspdf').jsPDF,
+  cx: number,
+  cy: number,
+  r: number,
+): void {
+  const petalR = r * 0.55
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4
+    const px = cx + Math.cos(a) * r * 0.62
+    const py = cy + Math.sin(a) * r * 0.62
+    doc.setFillColor(...COLORS.gold)
+    doc.circle(px, py, petalR, 'F')
+  }
+  doc.setFillColor(...COLORS.kesri)
+  doc.circle(cx, cy, r * 0.42, 'F')
+  doc.setFillColor(...COLORS.field)
+  doc.circle(cx, cy, r * 0.18, 'F')
+}
+
+/** Vine bud along border edges. */
+function drawFloralBud(
+  doc: import('jspdf').jsPDF,
+  cx: number,
+  cy: number,
+  r: number,
+): void {
+  doc.setFillColor(...COLORS.gold)
+  doc.circle(cx, cy, r, 'F')
+  doc.setFillColor(...COLORS.kesri)
+  doc.circle(cx, cy, r * 0.45, 'F')
+}
+
+/**
+ * Illuminated-manuscript / gutka-style floral frame:
+ * triple rules + corner blooms + edge buds.
+ */
+function drawPunjabiFloralBorder(
+  doc: import('jspdf').jsPDF,
+  pageW: number,
+  pageH: number,
+): void {
+  const inset = 10
+  const x = inset
+  const y = inset
+  const w = pageW - inset * 2
+  const h = pageH - inset * 2
+
+  // Outer gold rule
+  doc.setDrawColor(...COLORS.gold)
+  doc.setLineWidth(2.2)
+  doc.rect(x, y, w, h, 'S')
+  // Kesri mid band
+  doc.setDrawColor(...COLORS.kesri)
+  doc.setLineWidth(3.4)
+  doc.rect(x + 5, y + 5, w - 10, h - 10, 'S')
+  // Inner gold hairline
+  doc.setDrawColor(...COLORS.gold)
+  doc.setLineWidth(1)
+  doc.rect(x + 10, y + 10, w - 20, h - 20, 'S')
+  // Soft field-green inner whisper line
+  doc.setDrawColor(...COLORS.field)
+  doc.setLineWidth(0.6)
+  doc.rect(x + 13, y + 13, w - 26, h - 26, 'S')
+
+  const bloomR = 7
+  const corners: Array<[number, number]> = [
+    [x + 18, y + 18],
+    [x + w - 18, y + 18],
+    [x + 18, y + h - 18],
+    [x + w - 18, y + h - 18],
+  ]
+  for (const [cx, cy] of corners) drawFloralBloom(doc, cx, cy, bloomR)
+
+  const budR = 2.6
+  const step = 28
+  // Top & bottom buds
+  for (let bx = x + 40; bx < x + w - 40; bx += step) {
+    drawFloralBud(doc, bx, y + 7.5, budR)
+    drawFloralBud(doc, bx, y + h - 7.5, budR)
+  }
+  // Left & right buds
+  for (let by = y + 40; by < y + h - 40; by += step) {
+    drawFloralBud(doc, x + 7.5, by, budR)
+    drawFloralBud(doc, x + w - 7.5, by, budR)
+  }
+}
+
 async function svgUrlToPngDataUrl(url: string, size = 48): Promise<string | null> {
   if (iconCache.has(url)) return iconCache.get(url)!
   try {
@@ -86,41 +175,44 @@ export async function exportYearToPdf(
 
   doc.setFillColor(...COLORS.page)
   doc.rect(0, 0, pageW, pageH, 'F')
+  drawPunjabiFloralBorder(doc, pageW, pageH)
+
+  // Header sits inside the floral frame
   doc.setFillColor(...COLORS.headerBand)
-  doc.rect(0, 0, pageW, 52, 'F')
+  doc.rect(24, 24, pageW - 48, 40, 'F')
   doc.setFillColor(...COLORS.kesri)
-  doc.rect(0, 52, pageW, 3, 'F')
+  doc.rect(24, 64, pageW - 48, 2.5, 'F')
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(22)
   doc.setTextColor(...COLORS.title)
   const brand = 'MonthWise'
-  doc.text(brand, 28, 30)
+  doc.text(brand, 36, 48)
   const brandW = doc.getTextWidth(brand)
   doc.setFontSize(16)
   doc.setTextColor(...COLORS.gold)
-  doc.text(String(year), 28 + brandW + 10, 30)
+  doc.text(String(year), 36 + brandW + 10, 48)
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(...COLORS.muted)
-  doc.text('Punjabi & Sikh observances — yearly glance (one page)', 28, 44)
+  doc.text('Punjabi & Sikh observances — yearly glance (one page)', 36, 60)
 
   doc.setFillColor(...COLORS.kesri)
-  doc.circle(pageW - 36, 26, 11, 'F')
+  doc.circle(pageW - 48, 44, 10, 'F')
   doc.setFillColor(...COLORS.gold)
-  doc.circle(pageW - 36, 26, 4.5, 'F')
+  doc.circle(pageW - 48, 44, 4, 'F')
   doc.setFillColor(...COLORS.field)
-  doc.circle(pageW - 52, 34, 5, 'F')
+  doc.circle(pageW - 62, 50, 4.5, 'F')
 
   const cols = 4
   const rows = 3
-  const marginX = 22
-  const marginTop = 64
+  const marginX = 28
+  const marginTop = 76
   const gapX = 10
   const gapY = 8
   const cellW = (pageW - marginX * 2 - gapX * (cols - 1)) / cols
-  const cellH = (pageH - marginTop - 28 - gapY * (rows - 1)) / rows
+  const cellH = (pageH - marginTop - 32 - gapY * (rows - 1)) / rows
 
   const selectedEvents: CalendarEvent[] = []
   for (let m = 0; m < 12; m++) {
@@ -195,7 +287,7 @@ export async function exportYearToPdf(
   doc.text(
     `MonthWise · ${year} · up to ${MAX_EXPORT_EVENTS_PER_MONTH} events per month · single page`,
     pageW / 2,
-    pageH - 12,
+    pageH - 20,
     { align: 'center' },
   )
 
