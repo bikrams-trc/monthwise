@@ -72,6 +72,48 @@ export default function App() {
     <div className="app-shell">
       <header className="hero">
         <div className="hero-visual" aria-hidden="true">
+          <svg className="hero-constellations" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+            <title>Star constellations marking Sangrands</title>
+            {/* Scattered sky stars */}
+            <g className="sky-stars" fill="#f7d98a">
+              {[
+                [48, 72], [110, 40], [180, 95], [260, 55], [320, 120], [400, 38],
+                [470, 88], [540, 50], [610, 110], [700, 42], [780, 95], [850, 60],
+                [960, 130], [1040, 70], [1120, 100], [160, 160], [300, 200],
+                [520, 150], [680, 180], [820, 155], [980, 200], [90, 210],
+              ].map(([x, y], i) => (
+                <circle key={`s-${i}`} cx={x} cy={y} r={i % 5 === 0 ? 1.8 : 1.1} opacity={0.35 + (i % 4) * 0.12} />
+              ))}
+            </g>
+            {/* Twelve Sangrand markers — small mustard constellations across the sky */}
+            {[
+              { x: 90, y: 130, pts: '0,18 12,0 24,18 8,11 16,11' },
+              { x: 210, y: 70, pts: '0,20 10,0 20,20' },
+              { x: 340, y: 100, pts: '0,0 8,16 22,4 0,10 22,16' },
+              { x: 470, y: 55, pts: '0,12 14,0 28,12 14,24' },
+              { x: 600, y: 95, pts: '0,0 0,22 18,11' },
+              { x: 730, y: 65, pts: '0,16 10,0 20,16 10,10' },
+              { x: 120, y: 250, pts: '0,0 16,6 8,22 8,10' },
+              { x: 280, y: 230, pts: '0,10 12,0 24,10 18,22 6,22' },
+              { x: 450, y: 210, pts: '0,18 14,0 28,18' },
+              { x: 620, y: 240, pts: '0,0 20,4 12,22 4,10 16,10' },
+              { x: 790, y: 220, pts: '0,12 16,0 32,12 24,26 8,26' },
+              { x: 960, y: 250, pts: '0,0 8,18 22,6 0,10 22,14' },
+            ].map((c, i) => (
+              <g key={`c-${i}`} className="sangrand-constellation" transform={`translate(${c.x} ${c.y})`}>
+                <polygon
+                  points={c.pts}
+                  fill="none"
+                  stroke="rgba(242,193,78,0.45)"
+                  strokeWidth="1"
+                />
+                {c.pts.split(' ').map((pair, j) => {
+                  const [px, py] = pair.split(',').map(Number)
+                  return <circle key={j} cx={px} cy={py} r="2.2" fill="#f2c14e" />
+                })}
+              </g>
+            ))}
+          </svg>
           <img className="hero-moon" src="/hero-moon.png" alt="" width={294} height={213} decoding="async" />
         </div>
         <svg className="khanda" viewBox="0 0 100 100" aria-hidden="true">
