@@ -1,6 +1,11 @@
 :root {
-  --night: #142033;
-  --night-deep: #0d1524;
+  /* Akali / Nihang blue + retained mustard */
+  --akali-deep: #061a4a;
+  --akali: #0a2f78;
+  --akali-mid: #1450a8;
+  --akali-bright: #1f66c9;
+  --night: var(--akali);
+  --night-deep: var(--akali-deep);
   --kesri: #e85d04;
   --kesri-deep: #c44a02;
   --marigold: #f2c14e;
@@ -10,9 +15,9 @@
   --mist: #e8eef6;
   --ink: #f5f0e8;
   --muted: rgba(245, 240, 232, 0.72);
-  --line: rgba(242, 193, 78, 0.28);
-  --panel: rgba(20, 32, 51, 0.72);
-  --panel-solid: #18263a;
+  --line: rgba(242, 193, 78, 0.34);
+  --panel: rgba(10, 47, 120, 0.58);
+  --panel-solid: #0d3a8c;
   --danger: #ff6b6b;
   --radius: 18px;
   --font-brand: 'Yatra One', serif;
@@ -38,10 +43,10 @@ img { max-width: 100%; display: block; }
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    radial-gradient(ellipse 90% 60% at 10% -10%, rgba(232, 93, 4, 0.35), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 0%, rgba(201, 24, 74, 0.28), transparent 50%),
-    radial-gradient(ellipse 80% 55% at 50% 110%, rgba(27, 122, 78, 0.22), transparent 55%),
-    linear-gradient(165deg, #0d1524 0%, #142033 42%, #1a2a18 100%);
+    radial-gradient(ellipse 90% 60% at 10% -10%, rgba(242, 193, 78, 0.28), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 95% 5%, rgba(31, 102, 201, 0.55), transparent 52%),
+    radial-gradient(ellipse 80% 55% at 50% 110%, rgba(232, 93, 4, 0.22), transparent 55%),
+    linear-gradient(165deg, #061a4a 0%, #0a2f78 45%, #1450a8 100%);
 }
 .app-shell::before {
   content: '';
@@ -77,13 +82,56 @@ img { max-width: 100%; display: block; }
 .hero-visual {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   background:
-    linear-gradient(180deg, transparent 20%, rgba(13, 21, 36, 0.55) 62%, rgba(13, 21, 36, 0.92) 100%),
-    radial-gradient(circle at 70% 30%, rgba(242, 193, 78, 0.25), transparent 40%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23142033'/%3E%3Cstop offset='55%25' stop-color='%233a1d28'/%3E%3Cstop offset='100%25' stop-color='%23e85d04'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='800' fill='url(%23sky)'/%3E%3Cg opacity='0.55' fill='%23f2c14e'%3E%3Ccircle cx='920' cy='160' r='54'/%3E%3Ccircle cx='920' cy='160' r='78' fill='none' stroke='%23f7d98a' stroke-width='3'/%3E%3C/g%3E%3Cpath d='M0 520c120-40 220-20 320 10s220 40 340 10 240-60 360-30 180 60 180 60v230H0Z' fill='%231b7a4e' opacity='0.55'/%3E%3Cpath d='M0 580c140-30 260 10 380 20s250-40 380-20 260 50 440 20v200H0Z' fill='%23145c3b' opacity='0.7'/%3E%3C/svg%3E");
+    linear-gradient(180deg, transparent 18%, rgba(6, 26, 74, 0.45) 58%, rgba(6, 26, 74, 0.92) 100%),
+    radial-gradient(circle at 72% 22%, rgba(31, 102, 201, 0.35), transparent 45%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%230a2f78'/%3E%3Cstop offset='48%25' stop-color='%231450a8'/%3E%3Cstop offset='78%25' stop-color='%23c44a02'/%3E%3Cstop offset='100%25' stop-color='%23f2c14e'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='800' fill='url(%23sky)'/%3E%3Cpath d='M0 520c120-40 220-20 320 10s220 40 340 10 240-60 360-30 180 60 180 60v230H0Z' fill='%230a2f78' opacity='0.45'/%3E%3Cpath d='M0 580c140-30 260 10 380 20s250-40 380-20 260 50 440 20v200H0Z' fill='%23061a4a' opacity='0.65'/%3E%3C/svg%3E");
   background-size: cover;
   background-position: center;
   animation: fade-up 0.9s ease both;
+}
+.hero-constellations {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.9;
+}
+.sangrand-constellation {
+  animation: star-twinkle 4.8s ease-in-out infinite;
+}
+.sangrand-constellation:nth-child(odd) { animation-delay: 0.6s; }
+.sangrand-constellation:nth-child(3n) { animation-delay: 1.4s; }
+.sky-stars circle {
+  animation: star-twinkle 3.6s ease-in-out infinite;
+}
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.hero-moon {
+  position: absolute;
+  top: clamp(1.25rem, 5vh, 3rem);
+  right: clamp(1rem, 7vw, 4.5rem);
+  width: min(42vw, 300px);
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+  /* Transparent PNG — no rectangular plate / blend seam */
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  filter:
+    drop-shadow(0 0 22px rgba(140, 200, 255, 0.4))
+    drop-shadow(0 0 48px rgba(10, 47, 120, 0.35));
+  animation: fade-up 1s 0.15s ease both, moon-glow 5.5s ease-in-out infinite;
+}
+@keyframes moon-glow {
+  0%, 100% { filter: drop-shadow(0 0 18px rgba(140, 200, 255, 0.35)) drop-shadow(0 0 40px rgba(10, 47, 120, 0.3)); }
+  50% { filter: drop-shadow(0 0 28px rgba(160, 210, 255, 0.55)) drop-shadow(0 0 56px rgba(242, 193, 78, 0.16)); }
 }
 .khanda {
   position: absolute;
@@ -183,7 +231,7 @@ img { max-width: 100%; display: block; }
   background: var(--panel-solid); border: 1px solid var(--line);
   border-radius: 10px; padding: 0.45rem 0.7rem; color: var(--ink);
 }
-.year-jump select option, .field select option { background: #18263a; color: #f5f0e8; }
+.year-jump select option, .field select option { background: #0d3a8c; color: #f5f0e8; }
 
 .layout {
   display: grid;
@@ -240,14 +288,29 @@ img { max-width: 100%; display: block; }
   display: grid; grid-template-columns: auto auto 1fr auto; gap: 0.7rem; align-items: center;
   padding: 0.8rem 0.9rem; border-radius: 14px;
   border: 1px solid rgba(242, 193, 78, 0.18);
-  background: rgba(13, 21, 36, 0.45); animation: fade-up 0.4s ease both;
+  background: rgba(6, 26, 74, 0.42); animation: fade-up 0.4s ease both;
 }
 .event-icon { width: 40px; height: 40px; border-radius: 11px; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
 .event-day {
-  width: 2.45rem; height: 2.45rem; border-radius: 12px; display: grid; place-items: center;
-  font-weight: 700;
+  width: 2.7rem; min-height: 2.7rem; border-radius: 12px;
+  display: grid; place-items: center; align-content: center; gap: 0.05rem;
+  padding: 0.28rem 0.15rem;
+  font-weight: 700; line-height: 1;
   background: linear-gradient(145deg, rgba(232, 93, 4, 0.35), rgba(242, 193, 78, 0.2));
   color: var(--gold-soft);
+}
+.event-day-num { font-size: 0.95rem; }
+.event-day-weekday {
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--muted);
+}
+.event-day--unset {
+  width: auto; min-width: 2.7rem; max-width: 3.6rem; padding: 0.35rem 0.3rem;
+}
+.event-day-unset {
+  font-size: 0.52rem; font-weight: 700; letter-spacing: 0.02em;
+  text-align: center; line-height: 1.15; color: var(--muted);
+  text-transform: none;
 }
 .event-body strong { display: block; font-size: 1rem; }
 .event-body .pa { font-family: var(--font-pa); color: var(--muted); font-size: 0.9rem; }
@@ -268,7 +331,7 @@ img { max-width: 100%; display: block; }
 .empty-events { padding: 1.5rem 0.5rem; text-align: center; color: var(--muted); }
 
 .modal-backdrop {
-  position: fixed; inset: 0; z-index: 40; background: rgba(6, 10, 18, 0.72);
+  position: fixed; inset: 0; z-index: 40; background: rgba(6, 26, 74, 0.72);
   display: grid; place-items: end center; padding: 1rem; animation: fade-up 0.2s ease both;
 }
 @media (min-width: 640px) { .modal-backdrop { place-items: center; } }
@@ -295,7 +358,7 @@ img { max-width: 100%; display: block; }
 @media (max-width: 700px) { .export-months { grid-template-columns: 1fr; } }
 .export-month {
   border: 1px solid rgba(242, 193, 78, 0.18); border-radius: 14px;
-  background: rgba(13, 21, 36, 0.45); padding: 0.7rem 0.75rem;
+  background: rgba(6, 26, 74, 0.42); padding: 0.7rem 0.75rem;
 }
 .export-month-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.45rem; }
 .export-month-head strong { color: var(--marigold); font-family: var(--font-brand); font-size: 1.05rem; font-weight: 400; }

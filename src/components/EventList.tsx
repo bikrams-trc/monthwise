@@ -1,8 +1,14 @@
 import type { CalendarEvent } from '../lib/events'
+import { WEEKDAYS } from '../lib/events'
 import { iconForEvent } from '../lib/eventIcons'
 import type { DayWeather } from '../lib/weather'
 import type { WeatherStatus } from '../hooks/useEventWeather'
 import { WeatherIcon } from './WeatherIcon'
+
+function weekdayFor(event: CalendarEvent): string {
+  if (event.day == null) return ''
+  return WEEKDAYS[new Date(event.year, event.month, event.day).getDay()] ?? ''
+}
 
 type Props = {
   events: CalendarEvent[]
@@ -40,7 +46,7 @@ export function EventList({
     <section className="events-panel events-panel--main" aria-labelledby="events-heading">
       <h3 id="events-heading">This month</h3>
       <p className="events-sub">
-        Pooranmashi and Sangrand are added by default. Edit or remove them anytime.
+        Pooranmashi and Sangrand are added by default. Chart years use lunar dates; otherwise set the day when you know it.
       </p>
       {statusText && (
         <p className="weather-status">
@@ -60,7 +66,9 @@ export function EventList({
       ) : (
         <ul className="event-list">
           {events.map((e, i) => {
-            const weather = weatherEnabled ? weatherByDay?.[e.day] : undefined
+            const weather =
+              weatherEnabled && e.day != null ? weatherByDay?.[e.day] : undefined
+            const weekday = weekdayFor(e)
             return (
               <li key={e.id} className="event-item" style={{ animationDelay: `${i * 40}ms` }}>
                 <img
@@ -71,8 +79,18 @@ export function EventList({
                   height={40}
                   decoding="async"
                 />
-                <div className="event-day" aria-hidden="true">
-                  {e.day}
+                <div
+                  className={`event-day${e.day == null ? ' event-day--unset' : ''}`}
+                  aria-hidden="true"
+                >
+                  {e.day == null ? (
+                    <span className="event-day-unset">Not set</span>
+                  ) : (
+                    <>
+                      <span className="event-day-num">{e.day}</span>
+                      {weekday && <span className="event-day-weekday">{weekday}</span>}
+                    </>
+                  )}
                 </div>
                 <div className="event-body">
                   <strong>{e.name}</strong>
