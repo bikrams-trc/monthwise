@@ -46,7 +46,7 @@ export function EventList({
     <section className="events-panel events-panel--main" aria-labelledby="events-heading">
       <h3 id="events-heading">This month</h3>
       <p className="events-sub">
-        Pooranmashi and Sangrand are added by default without dates — set the day when you know it.
+        Pooranmashi and Sangrand are added by default. Chart years use lunar dates; otherwise set the day when you know it.
       </p>
       {statusText && (
         <p className="weather-status">

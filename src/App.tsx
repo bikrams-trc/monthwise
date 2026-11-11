@@ -222,7 +222,7 @@ export default function App() {
         </div>
 
         <p className="footer-note">
-          Events stay on this device (localStorage). Defaults: Pooranmashi &amp; Sangrand each month (date left as Not set until you set it). Current-month event weather uses your location (°F).
+          Events stay on this device (localStorage). Defaults: Pooranmashi &amp; Sangrand each month (2026–2027 use chart dates; otherwise Not set). Current-month event weather uses your location (°F).
         </p>
       </main>
 

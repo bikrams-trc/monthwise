@@ -19,8 +19,8 @@ export type CalendarEvent = {
 }
 
 const STORAGE_KEY = 'monthwise-events-v1'
-/** v4: year-chart dates when available; otherwise Not set */
-const SEEDED_KEY = 'monthwise-seeded-months-v4'
+/** v5: chart dates claim Not set placeholders (no duplicate defaults) */
+const SEEDED_KEY = 'monthwise-seeded-months-v5'
 
 function uid(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
@@ -60,17 +60,53 @@ function writeSeeded(seeded: Set<string>): void {
   localStorage.setItem(SEEDED_KEY, JSON.stringify([...seeded]))
 }
 
+function isDefaultTemplate(id: string | undefined): boolean {
+  return id === 'pooranmashi' || id === 'sangrand'
+}
+
+/** Prefer exact day match; otherwise claim a Not set placeholder for the same template. */
 function upsertMonthDefault(
   events: CalendarEvent[],
   draft: Omit<CalendarEvent, 'id'> & { templateId: string },
 ): CalendarEvent[] {
-  const idx = events.findIndex(
+  let idx = events.findIndex(
     (e) =>
       e.year === draft.year &&
       e.month === draft.month &&
       e.templateId === draft.templateId &&
-      (draft.day == null ? e.day == null : e.day === draft.day),
+      e.day === draft.day,
   )
+  if (idx < 0 && draft.day != null) {
+    idx = events.findIndex(
+      (e) =>
+        e.year === draft.year &&
+        e.month === draft.month &&
+        e.templateId === draft.templateId &&
+        e.day == null,
+    )
+  }
+  if (idx < 0 && draft.day == null) {
+    idx = events.findIndex(
+      (e) =>
+        e.year === draft.year &&
+        e.month === draft.month &&
+        e.templateId === draft.templateId &&
+        e.day == null,
+    )
+    // Already imported with a date — do not add a Not set duplicate
+    if (
+      idx < 0 &&
+      events.some(
+        (e) =>
+          e.year === draft.year &&
+          e.month === draft.month &&
+          e.templateId === draft.templateId &&
+          e.day != null,
+      )
+    ) {
+      return events
+    }
+  }
   if (idx >= 0) {
     const next = [...events]
     next[idx] = {
@@ -86,10 +122,27 @@ function upsertMonthDefault(
   return [...events, { ...draft, id: uid() }]
 }
 
+/** Drop Not set Pooranmashi/Sangrand when a dated one already exists that month. */
+function pruneUnsetDefaults(events: CalendarEvent[], year: number, month: number): CalendarEvent[] {
+  return events.filter((e) => {
+    if (e.year !== year || e.month !== month || e.day != null) return true
+    if (!isDefaultTemplate(e.templateId)) return true
+    return !events.some(
+      (o) =>
+        o.id !== e.id &&
+        o.year === year &&
+        o.month === month &&
+        o.templateId === e.templateId &&
+        o.day != null,
+    )
+  })
+}
+
 export function ensureMonthDefaults(year: number, month: number): CalendarEvent[] {
   const seeded = readSeeded()
   const key = monthKey(year, month)
   let events = readEvents()
+  let dirty = false
 
   if (!seeded.has(key)) {
     const pooran = PREDEFINED_OBSERVANCES.find((o) => o.id === 'pooranmashi')!
@@ -120,10 +173,17 @@ export function ensureMonthDefaults(year: number, month: number): CalendarEvent[
       templateId: sangrand.id,
       note: ns ? `Start of ${ns}` : sangrand.note,
     })
-    writeEvents(events)
     seeded.add(key)
     writeSeeded(seeded)
+    dirty = true
   }
+
+  const pruned = pruneUnsetDefaults(events, year, month)
+  if (pruned.length !== events.length) {
+    events = pruned
+    dirty = true
+  }
+  if (dirty) writeEvents(events)
 
   return events
     .filter((e) => e.year === year && e.month === month)
