@@ -29,6 +29,7 @@
 html, body, #root {
   height: 100%;
   min-height: 100%;
+  overflow: hidden;
 }
 body {
   margin: 0;
@@ -37,9 +38,6 @@ body {
   background: var(--night-deep);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
-}
-@media (max-width: 900px) {
-  body { overflow: auto; }
 }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -84,12 +82,13 @@ img { max-width: 100%; display: block; }
 .hero {
   position: relative;
   flex: 0 0 auto;
-  height: 28vh;
-  max-height: 28vh;
-  min-height: 9.5rem;
+  /* Hard cap under 30% of the viewport so calendar fits without page scroll */
+  height: min(22vh, 168px);
+  max-height: min(22vh, 168px);
+  min-height: 7.25rem;
   display: grid;
   align-content: center;
-  padding: 0.65rem clamp(1rem, 3vw, 2.25rem);
+  padding: 0.45rem clamp(0.9rem, 2.5vw, 1.75rem);
   overflow: hidden;
 }
 .hero-visual {
@@ -128,9 +127,9 @@ img { max-width: 100%; display: block; }
 .hero-moon {
   position: absolute;
   top: auto;
-  bottom: clamp(0.35rem, 1.8vh, 0.85rem);
-  right: clamp(1rem, 5vw, 3.25rem);
-  width: min(16vw, 118px);
+  bottom: 0.2rem;
+  right: clamp(0.85rem, 4vw, 2.5rem);
+  width: min(11vw, 86px);
   height: auto;
   z-index: 1;
   pointer-events: none;
@@ -139,8 +138,8 @@ img { max-width: 100%; display: block; }
   border: 0;
   border-radius: 50%;
   filter:
-    drop-shadow(0 0 14px rgba(140, 200, 255, 0.4))
-    drop-shadow(0 0 28px rgba(10, 47, 120, 0.35));
+    drop-shadow(0 0 10px rgba(140, 200, 255, 0.4))
+    drop-shadow(0 0 20px rgba(10, 47, 120, 0.35));
   animation: fade-up 1s 0.15s ease both, moon-glow 5.5s ease-in-out infinite;
 }
 @keyframes moon-glow {
@@ -160,7 +159,7 @@ img { max-width: 100%; display: block; }
 .brand {
   margin: 0;
   font-family: var(--font-brand);
-  font-size: clamp(2rem, 4.6vw, 3.15rem);
+  font-size: clamp(1.55rem, 3.4vw, 2.35rem);
   line-height: 0.95;
   letter-spacing: 0.02em;
   color: var(--marigold);
@@ -168,26 +167,26 @@ img { max-width: 100%; display: block; }
 }
 .brand-pa {
   display: block;
-  margin-top: 0.15rem;
+  margin-top: 0.08rem;
   font-family: var(--font-pa);
-  font-size: clamp(0.85rem, 1.6vw, 1.1rem);
+  font-size: clamp(0.75rem, 1.3vw, 0.95rem);
   color: var(--gold-soft);
 }
 .hero-tagline {
-  margin: 0.35rem 0 0.55rem;
+  margin: 0.2rem 0 0.4rem;
   max-width: 28rem;
-  font-size: clamp(0.82rem, 1.35vw, 0.98rem);
-  line-height: 1.3;
+  font-size: clamp(0.75rem, 1.15vw, 0.9rem);
+  line-height: 1.25;
   color: var(--mist);
 }
-.cta-row { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
 .btn {
   appearance: none;
   border: 1px solid transparent;
   border-radius: 999px;
-  padding: 0.45rem 0.95rem;
+  padding: 0.35rem 0.85rem;
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 .btn:hover { transform: translateY(-1px); }
@@ -280,26 +279,12 @@ img { max-width: 100%; display: block; }
   overflow: hidden;
 }
 @media (max-width: 900px) {
-  .app-shell {
-    height: auto;
-    max-height: none;
-    min-height: 100dvh;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-  .hero {
-    height: auto;
-    max-height: 28vh;
-  }
-  .main {
-    flex: none;
-    overflow: visible;
-  }
   .layout {
     grid-template-columns: 1fr;
-    overflow: visible;
+    overflow: auto;
   }
   .calendar-panel { max-width: 360px; margin-inline: auto; width: 100%; }
+  .hero-tagline { display: none; }
 }
 .calendar-panel, .events-panel {
   border: 1px solid var(--line); border-radius: var(--radius);
@@ -345,6 +330,12 @@ img { max-width: 100%; display: block; }
 .events-panel h3 {
   margin: 0 0 0.2rem; font-family: var(--font-brand);
   font-size: clamp(1.35rem, 2.4vw, 1.7rem); color: var(--marigold);
+}
+.events-panel h3 .pa {
+  font-family: var(--font-pa);
+  font-size: 0.62em;
+  color: var(--gold-soft);
+  font-weight: 400;
 }
 .events-sub { margin: 0 0 0.7rem; color: var(--muted); font-size: 0.88rem; }
 .event-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
