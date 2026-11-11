@@ -36,7 +36,10 @@ export default function App() {
     return getEventsForMonth(year, month)
   }, [year, month, tick])
 
-  const eventDays = useMemo(() => [...new Set(events.map((e) => e.day))], [events])
+  const eventDays = useMemo(
+    () => [...new Set(events.map((e) => e.day).filter((d): d is number => d != null))],
+    [events],
+  )
   const weather = useEventWeather(year, month, eventDays)
 
   const years = useMemo(() => yearOptions(presentYear), [presentYear])
@@ -219,7 +222,7 @@ export default function App() {
         </div>
 
         <p className="footer-note">
-          Events stay on this device (localStorage). Defaults: Pooranmashi &amp; Sangrand each month (2027 uses lunar chart dates). Current-month event weather uses your location (°F).
+          Events stay on this device (localStorage). Defaults: Pooranmashi &amp; Sangrand each month (date left as Not empty until you set it). Current-month event weather uses your location (°F).
         </p>
       </main>
 

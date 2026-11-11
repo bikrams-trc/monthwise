@@ -156,7 +156,7 @@ export function defaultExportSelection(
     const events = [...(eventsByMonth[m] ?? [])].sort((a, b) => {
       const rank = (e: CalendarEvent) =>
         e.templateId === 'sangrand' ? 0 : e.templateId === 'pooranmashi' ? 1 : 2
-      return rank(a) - rank(b) || a.day - b.day || a.name.localeCompare(b.name)
+      return rank(a) - rank(b) || (a.day ?? 99) - (b.day ?? 99) || a.name.localeCompare(b.name)
     })
     selected[m] = events.slice(0, cap).map((e) => e.id)
   }
@@ -252,7 +252,7 @@ export async function exportYearToPdf(
     const ids = new Set((selectedByMonth[month] ?? []).slice(0, MAX_EXPORT_EVENTS_PER_MONTH))
     const events = (eventsByMonth[month] ?? [])
       .filter((e) => ids.has(e.id))
-      .sort((a, b) => a.day - b.day || a.name.localeCompare(b.name))
+      .sort((a, b) => (a.day ?? 99) - (b.day ?? 99) || a.name.localeCompare(b.name))
 
     let ey = y + 28
     const lineH = Math.min(16, (cellH - 36) / Math.max(events.length, 1))
@@ -270,13 +270,14 @@ export async function exportYearToPdf(
           doc.circle(x + 15, ey + 5, 4, 'F')
         }
         doc.setFont('helvetica', 'bold')
-        doc.setFontSize(7)
+        doc.setFontSize(6.5)
         doc.setTextColor(...COLORS.gold)
-        doc.text(String(e.day).padStart(2, '0'), x + 24, ey + 8)
+        const dayLabel = e.day == null ? 'Not empty' : String(e.day).padStart(2, '0')
+        doc.text(dayLabel, x + 24, ey + 8)
         doc.setFont('helvetica', 'normal')
         doc.setTextColor(...COLORS.ink)
-        const name = doc.splitTextToSize(e.name, cellW - 48)
-        doc.text(name[0] ?? e.name, x + 38, ey + 8)
+        const name = doc.splitTextToSize(e.name, cellW - 58)
+        doc.text(name[0] ?? e.name, x + 48, ey + 8)
         ey += lineH
       }
     }

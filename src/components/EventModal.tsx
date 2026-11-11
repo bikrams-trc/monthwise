@@ -1,6 +1,5 @@
 import { useEffect, useId, useState } from 'react'
 import { PREDEFINED_OBSERVANCES } from '../data/observances'
-import { pooranmashiDayFor, sangrandDayFor } from '../data/yearDefaults'
 import type { CalendarEvent } from '../lib/events'
 import { daysInMonth } from '../lib/events'
 
@@ -20,9 +19,7 @@ export function EventModal({ mode, year, month, initial, onClose, onSave, onDele
   const [templateId, setTemplateId] = useState(initial?.templateId ?? 'pooranmashi')
   const [name, setName] = useState(initial?.name ?? 'Pooranmashi')
   const [namePa, setNamePa] = useState(initial?.namePa ?? 'ਪੂਰਨਮਾਸ਼ੀ')
-  const [day, setDay] = useState(
-    initial?.day ?? Math.min(pooranmashiDayFor(year, month), maxDay),
-  )
+  const [day, setDay] = useState<number | ''>(initial?.day ?? '')
   const [note, setNote] = useState(initial?.note ?? '')
 
   useEffect(() => {
@@ -41,25 +38,29 @@ export function EventModal({ mode, year, month, initial, onClose, onSave, onDele
       setName('')
       setNamePa('')
       setNote('')
+      setDay('')
       return
     }
     setName(t.name)
     setNamePa(t.namePa ?? '')
     setNote(t.note ?? '')
-    if (id === 'sangrand') setDay(Math.min(sangrandDayFor(year, month), maxDay))
-    else if (id === 'pooranmashi') setDay(Math.min(pooranmashiDayFor(year, month), maxDay))
-    else if (t.defaultDay) setDay(Math.min(t.defaultDay, maxDay))
+    // Do not auto-fill dates for defaults — user sets the day
+    setDay('')
   }
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = name.trim()
     if (!trimmed) return
+    const dayValue =
+      day === '' || !Number.isFinite(Number(day))
+        ? null
+        : Math.min(Math.max(1, Number(day)), maxDay)
     onSave({
       id: initial?.id,
       year,
       month,
-      day: Math.min(Math.max(1, day), maxDay),
+      day: dayValue,
       name: trimmed,
       namePa: namePa.trim() || undefined,
       templateId: templateId === 'custom' ? 'custom' : templateId,
@@ -103,15 +104,18 @@ export function EventModal({ mode, year, month, initial, onClose, onSave, onDele
             <input id="namePa" value={namePa} onChange={(e) => setNamePa(e.target.value)} />
           </div>
           <div className="field">
-            <label htmlFor="day">Day of month</label>
+            <label htmlFor="day">Day of month (optional)</label>
             <input
               id="day"
               type="number"
               min={1}
               max={maxDay}
               value={day}
-              onChange={(e) => setDay(Number(e.target.value))}
-              required
+              placeholder="Not empty"
+              onChange={(e) => {
+                const v = e.target.value
+                setDay(v === '' ? '' : Number(v))
+              }}
             />
           </div>
           <div className="field">

@@ -1,15 +1,12 @@
 import { PREDEFINED_OBSERVANCES } from '../data/observances'
-import {
-  nanakshahiMonthFor,
-  pooranmashiDayFor,
-  sangrandDayFor,
-} from '../data/yearDefaults'
+import { nanakshahiMonthFor } from '../data/yearDefaults'
 
 export type CalendarEvent = {
   id: string
   year: number
   month: number
-  day: number
+  /** null = date not set yet (default events seed without a day) */
+  day: number | null
   name: string
   namePa?: string
   templateId?: string
@@ -17,8 +14,8 @@ export type CalendarEvent = {
 }
 
 const STORAGE_KEY = 'monthwise-events-v1'
-/** v2: re-apply year-table Pooranmashi/Sangrand days once per month */
-const SEEDED_KEY = 'monthwise-seeded-months-v2'
+/** v3: seed Pooranmashi/Sangrand without default day numbers */
+const SEEDED_KEY = 'monthwise-seeded-months-v3'
 
 function uid(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
@@ -95,7 +92,7 @@ export function ensureMonthDefaults(year: number, month: number): CalendarEvent[
     events = upsertMonthDefault(events, {
       year,
       month,
-      day: pooranmashiDayFor(year, month),
+      day: null,
       name: pooran.name,
       namePa: pooran.namePa,
       templateId: pooran.id,
@@ -104,7 +101,7 @@ export function ensureMonthDefaults(year: number, month: number): CalendarEvent[
     events = upsertMonthDefault(events, {
       year,
       month,
-      day: sangrandDayFor(year, month),
+      day: null,
       name: sangrand.name,
       namePa: sangrand.namePa,
       templateId: sangrand.id,
@@ -117,7 +114,10 @@ export function ensureMonthDefaults(year: number, month: number): CalendarEvent[
 
   return events
     .filter((e) => e.year === year && e.month === month)
-    .sort((a, b) => a.day - b.day || a.name.localeCompare(b.name))
+    .sort(
+      (a, b) =>
+        (a.day ?? 99) - (b.day ?? 99) || a.name.localeCompare(b.name),
+    )
 }
 
 export function getEventsForMonth(year: number, month: number): CalendarEvent[] {

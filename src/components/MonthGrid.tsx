@@ -22,6 +22,7 @@ export function MonthGrid({ year, month, events, animKey }: Props) {
 
   const byDay = new Map<number, CalendarEvent[]>()
   for (const e of events) {
+    if (e.day == null) continue
     const list = byDay.get(e.day) ?? []
     list.push(e)
     byDay.set(e.day, list)

@@ -304,6 +304,14 @@ img { max-width: 100%; display: block; }
   font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em;
   text-transform: uppercase; color: var(--muted);
 }
+.event-day--unset {
+  width: auto; min-width: 2.7rem; max-width: 3.6rem; padding: 0.35rem 0.3rem;
+}
+.event-day-unset {
+  font-size: 0.52rem; font-weight: 700; letter-spacing: 0.02em;
+  text-align: center; line-height: 1.15; color: var(--muted);
+  text-transform: none;
+}
 .event-body strong { display: block; font-size: 1rem; }
 .event-body .pa { font-family: var(--font-pa); color: var(--muted); font-size: 0.9rem; }
 .event-body .note { margin-top: 0.2rem; font-size: 0.82rem; color: var(--muted); }
