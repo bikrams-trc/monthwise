@@ -74,11 +74,6 @@ img { max-width: 100%; display: block; }
   from { opacity: 0; transform: scale(0.92); }
   to { opacity: 1; transform: scale(1); }
 }
-@keyframes glow-pulse {
-  0%, 100% { filter: drop-shadow(0 0 6px rgba(242, 193, 78, 0.35)); }
-  50% { filter: drop-shadow(0 0 16px rgba(232, 93, 4, 0.55)); }
-}
-
 .hero {
   position: relative;
   flex: 0 0 auto;
@@ -127,9 +122,10 @@ img { max-width: 100%; display: block; }
 .hero-moon {
   position: absolute;
   top: auto;
-  bottom: 0.2rem;
+  /* Lifted from the banner floor so the glow reads clearly */
+  bottom: clamp(1.1rem, 3.2vh, 1.85rem);
   right: clamp(0.85rem, 4vw, 2.5rem);
-  width: min(11vw, 86px);
+  width: min(12vw, 96px);
   height: auto;
   z-index: 1;
   pointer-events: none;
@@ -138,22 +134,24 @@ img { max-width: 100%; display: block; }
   border: 0;
   border-radius: 50%;
   filter:
-    drop-shadow(0 0 10px rgba(140, 200, 255, 0.4))
-    drop-shadow(0 0 20px rgba(10, 47, 120, 0.35));
+    drop-shadow(0 0 10px rgba(180, 220, 255, 0.75))
+    drop-shadow(0 0 22px rgba(120, 190, 255, 0.55))
+    drop-shadow(0 0 40px rgba(242, 193, 78, 0.28));
   animation: fade-up 1s 0.15s ease both, moon-glow 5.5s ease-in-out infinite;
 }
 @keyframes moon-glow {
-  0%, 100% { filter: drop-shadow(0 0 18px rgba(140, 200, 255, 0.35)) drop-shadow(0 0 40px rgba(10, 47, 120, 0.3)); }
-  50% { filter: drop-shadow(0 0 28px rgba(160, 210, 255, 0.55)) drop-shadow(0 0 56px rgba(242, 193, 78, 0.16)); }
-}
-.khanda {
-  position: absolute;
-  top: clamp(0.4rem, 1.2vh, 0.85rem);
-  right: clamp(0.85rem, 3vw, 1.75rem);
-  width: clamp(36px, 4.5vw, 52px);
-  height: clamp(36px, 4.5vw, 52px);
-  opacity: 0.85;
-  animation: glow-pulse 4.5s ease-in-out infinite;
+  0%, 100% {
+    filter:
+      drop-shadow(0 0 10px rgba(180, 220, 255, 0.7))
+      drop-shadow(0 0 22px rgba(120, 190, 255, 0.5))
+      drop-shadow(0 0 38px rgba(242, 193, 78, 0.22));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 16px rgba(200, 230, 255, 0.95))
+      drop-shadow(0 0 32px rgba(140, 210, 255, 0.7))
+      drop-shadow(0 0 52px rgba(242, 193, 78, 0.38));
+  }
 }
 .hero-copy { position: relative; z-index: 1; max-width: 34rem; animation: fade-up 0.8s 0.1s ease both; }
 .brand {

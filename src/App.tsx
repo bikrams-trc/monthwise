@@ -117,22 +117,6 @@ export default function App() {
           </svg>
           <img className="hero-moon" src="/hero-moon.png" alt="" width={354} height={352} decoding="async" />
         </div>
-        <svg className="khanda" viewBox="0 0 100 100" aria-hidden="true">
-          <circle cx="50" cy="50" r="28" fill="none" stroke="#f2c14e" strokeWidth="3" />
-          <circle cx="50" cy="50" r="8" fill="#e85d04" />
-          <path
-            d="M50 12v16M50 72v16M18 50h16M66 50h16"
-            stroke="#f2c14e"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <path
-            d="M28 28c8 6 12 14 14 22M72 28c-8 6-12 14-14 22M28 72c8-6 12-14 14-22M72 72c-8-6-12-14-14-22"
-            fill="none"
-            stroke="#f7d98a"
-            strokeWidth="2"
-          />
-        </svg>
         <div className="hero-copy">
           <h1 className="brand">
             MonthWise
