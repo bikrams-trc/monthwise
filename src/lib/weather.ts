@@ -65,26 +65,9 @@ export function requestBrowserCoords(): Promise<GeoCoords> {
   })
 }
 
-/** Approximate coords from public IP when browser geolocation is blocked/unavailable. */
-export async function requestIpCoords(): Promise<GeoCoords> {
-  const res = await fetch('https://get.geojs.io/v1/ip/geo.json')
-  if (!res.ok) throw new Error(`IP location failed (${res.status})`)
-  const data = (await res.json()) as { latitude?: string; longitude?: string }
-  const lat = Number(data.latitude)
-  const lon = Number(data.longitude)
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    throw new Error('IP location missing coordinates')
-  }
-  return { lat, lon }
-}
-
-/** Prefer precise browser location; fall back to IP estimate. */
+/** Browser geolocation only — no IP/third-party lookup. */
 export async function resolveCoords(): Promise<GeoCoords> {
-  try {
-    return await requestBrowserCoords()
-  } catch {
-    return requestIpCoords()
-  }
+  return requestBrowserCoords()
 }
 
 /**

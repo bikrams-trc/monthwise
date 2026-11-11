@@ -64,10 +64,16 @@ export function useEventWeather(
         }
         setByDay(next)
         setStatus('ready')
-      } catch {
+      } catch (err) {
         if (cancelled) return
-        setStatus('error')
         setByDay({})
+        const code =
+          err && typeof err === 'object' && 'code' in err
+            ? Number((err as { code: number }).code)
+            : NaN
+        if (code === 1) setStatus('denied')
+        else if (code === 2 || !navigator.geolocation) setStatus('unavailable')
+        else setStatus('error')
       }
     }
 
