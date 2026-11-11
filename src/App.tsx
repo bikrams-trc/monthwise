@@ -3,6 +3,7 @@ import { EventList } from './components/EventList'
 import { EventModal } from './components/EventModal'
 import { ExportModal } from './components/ExportModal'
 import { MonthGrid } from './components/MonthGrid'
+import { useEventWeather } from './hooks/useEventWeather'
 import {
   MONTH_NAMES,
   MONTH_NAMES_PA,
@@ -33,6 +34,9 @@ export default function App() {
     void tick
     return getEventsForMonth(year, month)
   }, [year, month, tick])
+
+  const eventDays = useMemo(() => [...new Set(events.map((e) => e.day))], [events])
+  const weather = useEventWeather(year, month, eventDays)
 
   const years = useMemo(() => yearOptions(now.getFullYear()), [])
 
@@ -154,6 +158,10 @@ export default function App() {
             events={events}
             onEdit={(event) => setModal({ mode: 'edit', event })}
             onDelete={handleDelete}
+            weatherEnabled={weather.enabled}
+            weatherStatus={weather.status}
+            weatherByDay={weather.byDay}
+            onRetryWeather={weather.retry}
           />
           <MonthGrid
             year={year}
@@ -164,7 +172,7 @@ export default function App() {
         </div>
 
         <p className="footer-note">
-          Events stay on this device (localStorage). Defaults: Pooranmashi &amp; Sangrand each month (2027 uses lunar chart dates).
+          Events stay on this device (localStorage). Defaults: Pooranmashi &amp; Sangrand each month (2027 uses lunar chart dates). Current-month event weather uses your location (°F).
         </p>
       </main>
 

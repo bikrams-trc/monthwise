@@ -1,19 +1,23 @@
 import { iconForEvent } from './eventIcons'
 import {
   MONTH_NAMES,
-  MONTH_NAMES_PA,
   type CalendarEvent,
 } from './events'
 
 export const MAX_EXPORT_EVENTS_PER_MONTH = 5
 
+/** Print-friendly warm field palette (no near-black page fill). */
 const COLORS = {
-  night: [13, 21, 36] as const,
-  panel: [24, 38, 58] as const,
-  gold: [242, 193, 78] as const,
-  kesri: [232, 93, 4] as const,
-  ink: [245, 240, 232] as const,
-  muted: [180, 190, 205] as const,
+  page: [252, 244, 228] as const,
+  headerBand: [255, 236, 200] as const,
+  panel: [255, 252, 245] as const,
+  panelLine: [232, 196, 140] as const,
+  title: [158, 74, 12] as const,
+  gold: [184, 120, 18] as const,
+  kesri: [220, 90, 20] as const,
+  field: [34, 112, 72] as const,
+  ink: [48, 36, 28] as const,
+  muted: [110, 92, 72] as const,
 }
 
 const iconCache = new Map<string, string>()
@@ -80,28 +84,39 @@ export async function exportYearToPdf(
   const pageW = doc.internal.pageSize.getWidth()
   const pageH = doc.internal.pageSize.getHeight()
 
-  doc.setFillColor(...COLORS.night)
+  doc.setFillColor(...COLORS.page)
   doc.rect(0, 0, pageW, pageH, 'F')
+  doc.setFillColor(...COLORS.headerBand)
+  doc.rect(0, 0, pageW, 52, 'F')
+  doc.setFillColor(...COLORS.kesri)
+  doc.rect(0, 52, pageW, 3, 'F')
 
-  doc.setTextColor(...COLORS.gold)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(22)
-  doc.text('MonthWise', 28, 32)
-  doc.setFontSize(14)
-  doc.text(String(year), 140, 32)
+  doc.setTextColor(...COLORS.title)
+  const brand = 'MonthWise'
+  doc.text(brand, 28, 30)
+  const brandW = doc.getTextWidth(brand)
+  doc.setFontSize(16)
+  doc.setTextColor(...COLORS.gold)
+  doc.text(String(year), 28 + brandW + 10, 30)
+
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(...COLORS.muted)
-  doc.text('Punjabi & Sikh observances — yearly glance (one page)', 28, 46)
+  doc.text('Punjabi & Sikh observances — yearly glance (one page)', 28, 44)
+
   doc.setFillColor(...COLORS.kesri)
-  doc.circle(pageW - 36, 28, 12, 'F')
+  doc.circle(pageW - 36, 26, 11, 'F')
   doc.setFillColor(...COLORS.gold)
-  doc.circle(pageW - 36, 28, 5, 'F')
+  doc.circle(pageW - 36, 26, 4.5, 'F')
+  doc.setFillColor(...COLORS.field)
+  doc.circle(pageW - 52, 34, 5, 'F')
 
   const cols = 4
   const rows = 3
   const marginX = 22
-  const marginTop = 58
+  const marginTop = 64
   const gapX = 10
   const gapY = 8
   const cellW = (pageW - marginX * 2 - gapX * (cols - 1)) / cols
@@ -131,25 +146,24 @@ export async function exportYearToPdf(
 
     doc.setFillColor(...COLORS.panel)
     doc.roundedRect(x, y, cellW, cellH, 6, 6, 'F')
+    doc.setDrawColor(...COLORS.panelLine)
+    doc.setLineWidth(0.8)
+    doc.roundedRect(x, y, cellW, cellH, 6, 6, 'S')
     doc.setFillColor(...COLORS.kesri)
     doc.rect(x, y, 4, cellH, 'F')
 
-    doc.setTextColor(...COLORS.gold)
+    doc.setTextColor(...COLORS.title)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
-    doc.text(MONTH_NAMES[month], x + 12, y + 14)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7)
-    doc.setTextColor(...COLORS.muted)
-    doc.text(MONTH_NAMES_PA[month], x + 12, y + 24)
+    doc.text(MONTH_NAMES[month], x + 12, y + 16)
 
     const ids = new Set((selectedByMonth[month] ?? []).slice(0, MAX_EXPORT_EVENTS_PER_MONTH))
     const events = (eventsByMonth[month] ?? [])
       .filter((e) => ids.has(e.id))
       .sort((a, b) => a.day - b.day || a.name.localeCompare(b.name))
 
-    let ey = y + 32
-    const lineH = Math.min(16, (cellH - 38) / Math.max(events.length, 1))
+    let ey = y + 28
+    const lineH = Math.min(16, (cellH - 36) / Math.max(events.length, 1))
 
     if (events.length === 0) {
       doc.setFontSize(7)
