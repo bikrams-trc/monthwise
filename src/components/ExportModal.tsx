@@ -177,7 +177,7 @@ export function ExportModal({ year, onClose, onExported }: Props) {
                               height={22}
                             />
                             <span className="export-event-day">
-                              {e.day == null ? 'Not empty' : e.day}
+                              {e.day == null ? 'Not set' : e.day}
                             </span>
                             <span className="export-event-name">
                               {e.name}

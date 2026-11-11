@@ -272,7 +272,7 @@ export async function exportYearToPdf(
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(6.5)
         doc.setTextColor(...COLORS.gold)
-        const dayLabel = e.day == null ? 'Not empty' : String(e.day).padStart(2, '0')
+        const dayLabel = e.day == null ? 'Not set' : String(e.day).padStart(2, '0')
         doc.text(dayLabel, x + 24, ey + 8)
         doc.setFont('helvetica', 'normal')
         doc.setTextColor(...COLORS.ink)

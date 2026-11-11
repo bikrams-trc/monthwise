@@ -111,7 +111,7 @@ export function EventModal({ mode, year, month, initial, onClose, onSave, onDele
               min={1}
               max={maxDay}
               value={day}
-              placeholder="Not empty"
+              placeholder="Not set"
               onChange={(e) => {
                 const v = e.target.value
                 setDay(v === '' ? '' : Number(v))

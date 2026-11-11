@@ -84,7 +84,7 @@ export function EventList({
                   aria-hidden="true"
                 >
                   {e.day == null ? (
-                    <span className="event-day-unset">Not empty</span>
+                    <span className="event-day-unset">Not set</span>
                   ) : (
                     <>
                       <span className="event-day-num">{e.day}</span>
