@@ -9,6 +9,7 @@ import {
   chartYearsAvailable,
   deleteEvent,
   getEventsForMonth,
+  getEventsForYear,
   importYearChart,
   updateEvent,
   type CalendarEvent,
@@ -22,7 +23,6 @@ function yearOptions(present: number): number[] {
 export default function App() {
   const now = new Date()
   const presentYear = now.getFullYear()
-  const maxYear = presentYear + 1
   const [year, setYear] = useState(presentYear)
   const [month, setMonth] = useState(now.getMonth())
   const [tick, setTick] = useState(0)
@@ -44,6 +44,11 @@ export default function App() {
     return getEventsForMonth(year, month)
   }, [year, month, tick])
 
+  const eventsByMonth = useMemo(() => {
+    void tick
+    return getEventsForYear(year)
+  }, [year, tick])
+
   const eventDays = useMemo(
     () => [...new Set(events.map((e) => e.day).filter((d): d is number => d != null))],
     [events],
@@ -51,14 +56,6 @@ export default function App() {
   const weather = useEventWeather(year, month, eventDays)
 
   const years = useMemo(() => yearOptions(presentYear), [presentYear])
-
-  function shiftMonth(delta: number) {
-    const d = new Date(year, month + delta, 1)
-    const nextYear = d.getFullYear()
-    if (nextYear < presentYear || nextYear > maxYear) return
-    setYear(nextYear)
-    setMonth(d.getMonth())
-  }
 
   function goToday() {
     const t = new Date()
@@ -201,7 +198,7 @@ export default function App() {
               Export {year} PDF
             </button>
             <button type="button" className="btn btn-primary" onClick={() => setModal({ mode: 'add' })}>
-              Add
+              Add Event
             </button>
           </div>
         </div>
@@ -220,11 +217,9 @@ export default function App() {
           />
           <MonthGrid
             year={year}
-            month={month}
-            events={events}
-            animKey={`${year}-${month}-${tick}`}
-            onPrevMonth={() => shiftMonth(-1)}
-            onNextMonth={() => shiftMonth(1)}
+            selectedMonth={month}
+            eventsByMonth={eventsByMonth}
+            onSelectMonth={setMonth}
           />
         </div>
 
