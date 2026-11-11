@@ -1,6 +1,7 @@
 import { iconForEvent } from './eventIcons'
 import {
   MONTH_NAMES,
+  WEEKDAYS,
   type CalendarEvent,
 } from './events'
 
@@ -49,6 +50,71 @@ function stroke(doc: import('jspdf').jsPDF, c: RGB): void {
 
 function textColor(doc: import('jspdf').jsPDF, c: RGB): void {
   doc.setTextColor(c[0], c[1], c[2])
+}
+
+function lighten(c: RGB, amount: number): RGB {
+  return [
+    Math.min(255, Math.round(c[0] + (255 - c[0]) * amount)),
+    Math.min(255, Math.round(c[1] + (255 - c[1]) * amount)),
+    Math.min(255, Math.round(c[2] + (255 - c[2]) * amount)),
+  ] as const
+}
+
+function darken(c: RGB, amount: number): RGB {
+  return [
+    Math.max(0, Math.round(c[0] * (1 - amount))),
+    Math.max(0, Math.round(c[1] * (1 - amount))),
+    Math.max(0, Math.round(c[2] * (1 - amount))),
+  ] as const
+}
+
+/** Raised card: drop shadow + light top/left bevel + dark bottom/right edge. */
+function drawMonthTile3D(
+  doc: import('jspdf').jsPDF,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  accent: RGB,
+): void {
+  const r = 7
+  // Soft shadow stack
+  fill(doc, [210, 218, 230] as const)
+  doc.roundedRect(x + 2.5, y + 3, w, h, r, r, 'F')
+  fill(doc, [190, 200, 215] as const)
+  doc.roundedRect(x + 1.5, y + 1.8, w, h, r, r, 'F')
+
+  // Face
+  fill(doc, COLORS.panel)
+  doc.roundedRect(x, y, w, h, r, r, 'F')
+
+  // Top highlight strip
+  fill(doc, lighten(accent, 0.82))
+  doc.roundedRect(x, y, w, 5, r, r, 'F')
+  fill(doc, COLORS.panel)
+  doc.rect(x, y + 4, w, 4, 'F')
+
+  // Left bevel (light)
+  fill(doc, lighten(accent, 0.55))
+  doc.rect(x, y + 5, 3, h - 8, 'F')
+  // Right / bottom bevel (dark)
+  fill(doc, darken(accent, 0.25))
+  doc.rect(x + w - 2.5, y + 5, 2.5, h - 8, 'F')
+  doc.rect(x + 3, y + h - 3, w - 5.5, 3, 'F')
+
+  // Accent corner notch
+  fill(doc, accent)
+  doc.circle(x + 10, y + 10, 3.2, 'F')
+  fill(doc, lighten(accent, 0.35))
+  doc.circle(x + 9.2, y + 9.2, 1.4, 'F')
+
+  stroke(doc, darken(accent, 0.15))
+  doc.setLineWidth(0.9)
+  doc.roundedRect(x, y, w, h, r, r, 'S')
+}
+
+function weekdayLabel(year: number, month: number, day: number): string {
+  return WEEKDAYS[new Date(year, month, day).getDay()] ?? ''
 }
 
 const iconCache = new Map<string, string>()
@@ -273,19 +339,12 @@ export async function exportYearToPdf(
     const y = marginTop + row * (cellH + gapY)
 
     const accent = MONTH_ACCENTS[month]!
-
-    fill(doc, COLORS.panel)
-    doc.roundedRect(x, y, cellW, cellH, 6, 6, 'F')
-    stroke(doc, COLORS.panelLine)
-    doc.setLineWidth(0.8)
-    doc.roundedRect(x, y, cellW, cellH, 6, 6, 'S')
-    fill(doc, accent)
-    doc.rect(x, y, 4, cellH, 'F')
+    drawMonthTile3D(doc, x, y, cellW, cellH, accent)
 
     textColor(doc, COLORS.title)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(11)
-    doc.text(MONTH_NAMES[month], x + 12, y + 17)
+    doc.text(MONTH_NAMES[month], x + 18, y + 18)
 
     const ids = new Set((selectedByMonth[month] ?? []).slice(0, MAX_EXPORT_EVENTS_PER_MONTH))
     // Deduplicate default templates by templateId+day (guards stale localStorage)
@@ -303,34 +362,38 @@ export async function exportYearToPdf(
       })
       .sort((a, b) => (a.day ?? 99) - (b.day ?? 99) || a.name.localeCompare(b.name))
 
-    let ey = y + 30
-    const lineH = Math.min(18, (cellH - 38) / Math.max(events.length, 1))
+    let ey = y + 32
+    const lineH = Math.min(18, (cellH - 42) / Math.max(events.length, 1))
 
     if (events.length === 0) {
       doc.setFontSize(8)
-      doc.setTextColor(...COLORS.muted)
-      doc.text('No events selected', x + 12, ey + 8)
+      textColor(doc, COLORS.muted)
+      doc.text('No events selected', x + 14, ey + 8)
     } else {
       for (const e of events) {
         const png = iconPng.get(e.id)
-        if (png) doc.addImage(png, 'PNG', x + 10, ey, 11, 11)
+        if (png) doc.addImage(png, 'PNG', x + 12, ey, 11, 11)
         else {
           fill(doc, accent)
-          doc.circle(x + 15.5, ey + 5.5, 4.5, 'F')
+          doc.circle(x + 17.5, ey + 5.5, 4.5, 'F')
         }
         const isSangrand = e.templateId === 'sangrand'
         const isPooran = e.templateId === 'pooranmashi'
         const dayColor: RGB = isSangrand ? COLORS.akali : isPooran ? COLORS.gold : COLORS.kesri
         doc.setFont('helvetica', 'bold')
-        doc.setFontSize(9)
+        doc.setFontSize(8.5)
         textColor(doc, dayColor)
-        const dayLabel = e.day == null ? 'Not set' : String(e.day).padStart(2, '0')
-        doc.text(dayLabel, x + 26, ey + 9)
+        const dayLabel =
+          e.day == null
+            ? 'Not set'
+            : `${String(e.day).padStart(2, '0')} ${weekdayLabel(year, month, e.day)}`
+        doc.text(dayLabel, x + 28, ey + 9)
+        const dayWidth = doc.getTextWidth(dayLabel)
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(9)
         textColor(doc, COLORS.ink)
-        const name = doc.splitTextToSize(e.name, cellW - 60)
-        doc.text(name[0] ?? e.name, x + 48, ey + 9)
+        const name = doc.splitTextToSize(e.name, cellW - 42 - dayWidth)
+        doc.text(name[0] ?? e.name, x + 32 + dayWidth, ey + 9)
         ey += lineH
       }
     }
