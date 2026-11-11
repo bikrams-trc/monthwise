@@ -14,15 +14,16 @@ import {
   type CalendarEvent,
 } from './lib/events'
 
-function yearOptions(center: number): number[] {
-  const years: number[] = []
-  for (let y = center - 40; y <= center + 40; y++) years.push(y)
-  return years
+/** Present year and next year only (e.g. 2026, 2027). */
+function yearOptions(present: number): number[] {
+  return [present, present + 1]
 }
 
 export default function App() {
   const now = new Date()
-  const [year, setYear] = useState(now.getFullYear())
+  const presentYear = now.getFullYear()
+  const maxYear = presentYear + 1
+  const [year, setYear] = useState(presentYear)
   const [month, setMonth] = useState(now.getMonth())
   const [tick, setTick] = useState(0)
   const [modal, setModal] = useState<null | { mode: 'add' | 'edit'; event?: CalendarEvent }>(null)
@@ -38,11 +39,13 @@ export default function App() {
   const eventDays = useMemo(() => [...new Set(events.map((e) => e.day))], [events])
   const weather = useEventWeather(year, month, eventDays)
 
-  const years = useMemo(() => yearOptions(now.getFullYear()), [])
+  const years = useMemo(() => yearOptions(presentYear), [presentYear])
 
   function shiftMonth(delta: number) {
     const d = new Date(year, month + delta, 1)
-    setYear(d.getFullYear())
+    const nextYear = d.getFullYear()
+    if (nextYear < presentYear || nextYear > maxYear) return
+    setYear(nextYear)
     setMonth(d.getMonth())
   }
 
