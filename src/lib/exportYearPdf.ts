@@ -6,19 +6,36 @@ import {
 
 export const MAX_EXPORT_EVENTS_PER_MONTH = 5
 
-/** Print-friendly warm field palette (no near-black page fill). */
+/** Print-friendly palette: ivory page + Akali blue / mustard / field / phulkari. */
 const COLORS = {
   page: [252, 244, 228] as const,
-  headerBand: [255, 236, 200] as const,
+  headerBand: [232, 240, 252] as const,
   panel: [255, 252, 245] as const,
-  panelLine: [232, 196, 140] as const,
-  title: [158, 74, 12] as const,
+  panelLine: [180, 200, 230] as const,
+  title: [10, 47, 120] as const,
   gold: [184, 120, 18] as const,
   kesri: [220, 90, 20] as const,
   field: [34, 112, 72] as const,
-  ink: [48, 36, 28] as const,
-  muted: [110, 92, 72] as const,
+  akali: [20, 80, 168] as const,
+  phulkari: [180, 40, 90] as const,
+  ink: [36, 40, 55] as const,
+  muted: [90, 100, 120] as const,
 }
+
+const MONTH_ACCENTS = [
+  COLORS.kesri,
+  COLORS.akali,
+  COLORS.field,
+  COLORS.phulkari,
+  COLORS.gold,
+  COLORS.kesri,
+  COLORS.akali,
+  COLORS.field,
+  COLORS.phulkari,
+  COLORS.gold,
+  COLORS.akali,
+  COLORS.kesri,
+] as const
 
 const iconCache = new Map<string, string>()
 
@@ -30,11 +47,12 @@ function drawFloralBloom(
   r: number,
 ): void {
   const petalR = r * 0.55
+  const petalColors = [COLORS.gold, COLORS.kesri, COLORS.akali, COLORS.phulkari] as const
   for (let i = 0; i < 8; i++) {
     const a = (i * Math.PI) / 4
     const px = cx + Math.cos(a) * r * 0.62
     const py = cy + Math.sin(a) * r * 0.62
-    doc.setFillColor(...COLORS.gold)
+    doc.setFillColor(...petalColors[i % petalColors.length])
     doc.circle(px, py, petalR, 'F')
   }
   doc.setFillColor(...COLORS.kesri)
@@ -180,8 +198,10 @@ export async function exportYearToPdf(
   // Header sits inside the floral frame
   doc.setFillColor(...COLORS.headerBand)
   doc.rect(24, 24, pageW - 48, 40, 'F')
-  doc.setFillColor(...COLORS.kesri)
+  doc.setFillColor(...COLORS.akali)
   doc.rect(24, 64, pageW - 48, 2.5, 'F')
+  doc.setFillColor(...COLORS.kesri)
+  doc.rect(24, 66.5, pageW - 48, 1.2, 'F')
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(22)
@@ -190,7 +210,7 @@ export async function exportYearToPdf(
   doc.text(brand, 36, 48)
   const brandW = doc.getTextWidth(brand)
   doc.setFontSize(16)
-  doc.setTextColor(...COLORS.gold)
+  doc.setTextColor(...COLORS.kesri)
   doc.text(String(year), 36 + brandW + 10, 48)
 
   doc.setFont('helvetica', 'normal')
@@ -198,12 +218,14 @@ export async function exportYearToPdf(
   doc.setTextColor(...COLORS.muted)
   doc.text('Punjabi & Sikh observances — yearly glance (one page)', 36, 60)
 
-  doc.setFillColor(...COLORS.kesri)
+  doc.setFillColor(...COLORS.akali)
   doc.circle(pageW - 48, 44, 10, 'F')
   doc.setFillColor(...COLORS.gold)
   doc.circle(pageW - 48, 44, 4, 'F')
   doc.setFillColor(...COLORS.field)
   doc.circle(pageW - 62, 50, 4.5, 'F')
+  doc.setFillColor(...COLORS.phulkari)
+  doc.circle(pageW - 74, 42, 3.5, 'F')
 
   const cols = 4
   const rows = 3
@@ -236,48 +258,64 @@ export async function exportYearToPdf(
     const x = marginX + col * (cellW + gapX)
     const y = marginTop + row * (cellH + gapY)
 
+    const accent = MONTH_ACCENTS[month]
+
     doc.setFillColor(...COLORS.panel)
     doc.roundedRect(x, y, cellW, cellH, 6, 6, 'F')
     doc.setDrawColor(...COLORS.panelLine)
     doc.setLineWidth(0.8)
     doc.roundedRect(x, y, cellW, cellH, 6, 6, 'S')
-    doc.setFillColor(...COLORS.kesri)
+    doc.setFillColor(...accent)
     doc.rect(x, y, 4, cellH, 'F')
 
     doc.setTextColor(...COLORS.title)
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(10)
-    doc.text(MONTH_NAMES[month], x + 12, y + 16)
+    doc.setFontSize(11)
+    doc.text(MONTH_NAMES[month], x + 12, y + 17)
 
     const ids = new Set((selectedByMonth[month] ?? []).slice(0, MAX_EXPORT_EVENTS_PER_MONTH))
+    // Deduplicate default templates by templateId+day (guards stale localStorage)
+    const seen = new Set<string>()
     const events = (eventsByMonth[month] ?? [])
       .filter((e) => ids.has(e.id))
+      .filter((e) => {
+        if (!e.templateId || (e.templateId !== 'pooranmashi' && e.templateId !== 'sangrand')) {
+          return true
+        }
+        const k = `${e.templateId}:${e.day ?? 'x'}`
+        if (seen.has(k)) return false
+        seen.add(k)
+        return true
+      })
       .sort((a, b) => (a.day ?? 99) - (b.day ?? 99) || a.name.localeCompare(b.name))
 
-    let ey = y + 28
-    const lineH = Math.min(16, (cellH - 36) / Math.max(events.length, 1))
+    let ey = y + 30
+    const lineH = Math.min(18, (cellH - 38) / Math.max(events.length, 1))
 
     if (events.length === 0) {
-      doc.setFontSize(7)
+      doc.setFontSize(8)
       doc.setTextColor(...COLORS.muted)
       doc.text('No events selected', x + 12, ey + 8)
     } else {
       for (const e of events) {
         const png = iconPng.get(e.id)
-        if (png) doc.addImage(png, 'PNG', x + 10, ey, 10, 10)
+        if (png) doc.addImage(png, 'PNG', x + 10, ey, 11, 11)
         else {
-          doc.setFillColor(...COLORS.kesri)
-          doc.circle(x + 15, ey + 5, 4, 'F')
+          doc.setFillColor(...accent)
+          doc.circle(x + 15.5, ey + 5.5, 4.5, 'F')
         }
+        const isSangrand = e.templateId === 'sangrand'
+        const isPooran = e.templateId === 'pooranmashi'
         doc.setFont('helvetica', 'bold')
-        doc.setFontSize(6.5)
-        doc.setTextColor(...COLORS.gold)
+        doc.setFontSize(9)
+        doc.setTextColor(...(isSangrand ? COLORS.akali : isPooran ? COLORS.gold : COLORS.kesri))
         const dayLabel = e.day == null ? 'Not set' : String(e.day).padStart(2, '0')
-        doc.text(dayLabel, x + 24, ey + 8)
-        doc.setFont('helvetica', 'normal')
+        doc.text(dayLabel, x + 26, ey + 9)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(9)
         doc.setTextColor(...COLORS.ink)
-        const name = doc.splitTextToSize(e.name, cellW - 58)
-        doc.text(name[0] ?? e.name, x + 48, ey + 8)
+        const name = doc.splitTextToSize(e.name, cellW - 60)
+        doc.text(name[0] ?? e.name, x + 48, ey + 9)
         ey += lineH
       }
     }
