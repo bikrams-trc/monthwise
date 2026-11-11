@@ -5,8 +5,6 @@ import { ExportModal } from './components/ExportModal'
 import { MonthGrid } from './components/MonthGrid'
 import { useEventWeather } from './hooks/useEventWeather'
 import {
-  MONTH_NAMES,
-  MONTH_NAMES_PA,
   addEvent,
   deleteEvent,
   getEventsForMonth,
@@ -157,20 +155,6 @@ export default function App() {
 
       <main className="main" id="calendar">
         <div className="toolbar">
-          <div className="month-nav">
-            <button type="button" className="btn-icon" aria-label="Previous month" onClick={() => shiftMonth(-1)}>
-              ‹
-            </button>
-            <div className="month-title">
-              <h2>
-                {MONTH_NAMES[month]} {year}
-                <span className="pa">{MONTH_NAMES_PA[month]}</span>
-              </h2>
-            </div>
-            <button type="button" className="btn-icon" aria-label="Next month" onClick={() => shiftMonth(1)}>
-              ›
-            </button>
-          </div>
           <div className="year-jump">
             <button type="button" className="btn btn-ghost" onClick={goToday}>
               Today
@@ -218,6 +202,8 @@ export default function App() {
             month={month}
             events={events}
             animKey={`${year}-${month}-${tick}`}
+            onPrevMonth={() => shiftMonth(-1)}
+            onNextMonth={() => shiftMonth(1)}
           />
         </div>
 
