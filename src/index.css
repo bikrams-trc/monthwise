@@ -134,23 +134,23 @@ img { max-width: 100%; display: block; }
   border: 0;
   border-radius: 50%;
   filter:
-    drop-shadow(0 0 10px rgba(180, 220, 255, 0.75))
-    drop-shadow(0 0 22px rgba(120, 190, 255, 0.55))
-    drop-shadow(0 0 40px rgba(242, 193, 78, 0.28));
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.85))
+    drop-shadow(0 0 18px rgba(210, 235, 255, 0.7))
+    drop-shadow(0 0 36px rgba(160, 210, 255, 0.4));
   animation: fade-up 1s 0.15s ease both, moon-glow 5.5s ease-in-out infinite;
 }
 @keyframes moon-glow {
   0%, 100% {
     filter:
-      drop-shadow(0 0 10px rgba(180, 220, 255, 0.7))
-      drop-shadow(0 0 22px rgba(120, 190, 255, 0.5))
-      drop-shadow(0 0 38px rgba(242, 193, 78, 0.22));
+      drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))
+      drop-shadow(0 0 18px rgba(210, 235, 255, 0.65))
+      drop-shadow(0 0 34px rgba(160, 210, 255, 0.35));
   }
   50% {
     filter:
-      drop-shadow(0 0 16px rgba(200, 230, 255, 0.95))
-      drop-shadow(0 0 32px rgba(140, 210, 255, 0.7))
-      drop-shadow(0 0 52px rgba(242, 193, 78, 0.38));
+      drop-shadow(0 0 14px rgba(255, 255, 255, 0.95))
+      drop-shadow(0 0 28px rgba(230, 245, 255, 0.85))
+      drop-shadow(0 0 48px rgba(180, 220, 255, 0.5));
   }
 }
 .hero-copy { position: relative; z-index: 1; max-width: 34rem; animation: fade-up 0.8s 0.1s ease both; }
