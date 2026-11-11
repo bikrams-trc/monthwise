@@ -1,8 +1,9 @@
+import { PREDEFINED_OBSERVANCES } from '../data/observances'
 import {
-  PREDEFINED_OBSERVANCES,
-  POORANMASHI_DAY,
-  sangrandDayForMonth,
-} from '../data/observances'
+  nanakshahiMonthFor,
+  pooranmashiDayFor,
+  sangrandDayFor,
+} from '../data/yearDefaults'
 
 export type CalendarEvent = {
   id: string
@@ -16,7 +17,8 @@ export type CalendarEvent = {
 }
 
 const STORAGE_KEY = 'monthwise-events-v1'
-const SEEDED_KEY = 'monthwise-seeded-months-v1'
+/** v2: re-apply year-table Pooranmashi/Sangrand days once per month */
+const SEEDED_KEY = 'monthwise-seeded-months-v2'
 
 function uid(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
@@ -56,6 +58,31 @@ function writeSeeded(seeded: Set<string>): void {
   localStorage.setItem(SEEDED_KEY, JSON.stringify([...seeded]))
 }
 
+function upsertMonthDefault(
+  events: CalendarEvent[],
+  draft: Omit<CalendarEvent, 'id'> & { templateId: string },
+): CalendarEvent[] {
+  const idx = events.findIndex(
+    (e) =>
+      e.year === draft.year &&
+      e.month === draft.month &&
+      e.templateId === draft.templateId,
+  )
+  if (idx >= 0) {
+    const next = [...events]
+    next[idx] = {
+      ...next[idx],
+      day: draft.day,
+      name: draft.name,
+      namePa: draft.namePa,
+      note: draft.note,
+      templateId: draft.templateId,
+    }
+    return next
+  }
+  return [...events, { ...draft, id: uid() }]
+}
+
 export function ensureMonthDefaults(year: number, month: number): CalendarEvent[] {
   const seeded = readSeeded()
   const key = monthKey(year, month)
@@ -64,29 +91,25 @@ export function ensureMonthDefaults(year: number, month: number): CalendarEvent[
   if (!seeded.has(key)) {
     const pooran = PREDEFINED_OBSERVANCES.find((o) => o.id === 'pooranmashi')!
     const sangrand = PREDEFINED_OBSERVANCES.find((o) => o.id === 'sangrand')!
-    const defaults: CalendarEvent[] = [
-      {
-        id: uid(),
-        year,
-        month,
-        day: POORANMASHI_DAY,
-        name: pooran.name,
-        namePa: pooran.namePa,
-        templateId: pooran.id,
-        note: pooran.note,
-      },
-      {
-        id: uid(),
-        year,
-        month,
-        day: sangrandDayForMonth(month),
-        name: sangrand.name,
-        namePa: sangrand.namePa,
-        templateId: sangrand.id,
-        note: sangrand.note,
-      },
-    ]
-    events = [...events, ...defaults]
+    const ns = nanakshahiMonthFor(year, month)
+    events = upsertMonthDefault(events, {
+      year,
+      month,
+      day: pooranmashiDayFor(year, month),
+      name: pooran.name,
+      namePa: pooran.namePa,
+      templateId: pooran.id,
+      note: pooran.note,
+    })
+    events = upsertMonthDefault(events, {
+      year,
+      month,
+      day: sangrandDayFor(year, month),
+      name: sangrand.name,
+      namePa: sangrand.namePa,
+      templateId: sangrand.id,
+      note: ns ? `Start of ${ns}` : sangrand.note,
+    })
     writeEvents(events)
     seeded.add(key)
     writeSeeded(seeded)
