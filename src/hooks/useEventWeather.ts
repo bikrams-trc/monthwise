@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import {
+  DEFAULT_WEATHER_ZIP,
   fetchMonthDayWeather,
   resolveCoords,
   type DayWeather,
-  type GeoCoords,
+  type ResolvedLocation,
 } from '../lib/weather'
 
 export type WeatherStatus =
@@ -19,6 +20,8 @@ export type EventWeatherState = {
   enabled: boolean
   status: WeatherStatus
   byDay: Record<number, DayWeather>
+  /** Shown when weather uses the ZIP fallback instead of GPS. */
+  locationNote: string | null
   retry: () => void
 }
 
@@ -26,7 +29,7 @@ function isCurrentMonth(year: number, month: number, now = new Date()): boolean 
   return year === now.getFullYear() && month === now.getMonth()
 }
 
-let cachedCoords: GeoCoords | null = null
+let cachedLocation: ResolvedLocation | null = null
 
 export function useEventWeather(
   year: number,
@@ -36,6 +39,7 @@ export function useEventWeather(
   const enabled = isCurrentMonth(year, month)
   const [status, setStatus] = useState<WeatherStatus>(enabled ? 'locating' : 'idle')
   const [byDay, setByDay] = useState<Record<number, DayWeather>>({})
+  const [locationNote, setLocationNote] = useState<string | null>(null)
   const [retryToken, setRetryToken] = useState(0)
 
   const dayKey = [...eventDays].sort((a, b) => a - b).join(',')
@@ -49,13 +53,13 @@ export function useEventWeather(
       : []
 
     async function load() {
-      setStatus(cachedCoords ? 'loading' : 'locating')
+      setStatus(cachedLocation ? 'loading' : 'locating')
       try {
-        const coords = cachedCoords ?? (await resolveCoords())
+        const location = cachedLocation ?? (await resolveCoords())
         if (cancelled) return
-        cachedCoords = coords
+        cachedLocation = location
         setStatus('loading')
-        const map = await fetchMonthDayWeather(coords, year, month)
+        const map = await fetchMonthDayWeather(location.coords, year, month)
         if (cancelled) return
         const next: Record<number, DayWeather> = {}
         for (const day of days) {
@@ -63,17 +67,17 @@ export function useEventWeather(
           if (w) next[day] = w
         }
         setByDay(next)
+        setLocationNote(
+          location.source === 'zip'
+            ? `Using ZIP ${location.zip ?? DEFAULT_WEATHER_ZIP} for weather`
+            : null,
+        )
         setStatus('ready')
-      } catch (err) {
+      } catch {
         if (cancelled) return
         setByDay({})
-        const code =
-          err && typeof err === 'object' && 'code' in err
-            ? Number((err as { code: number }).code)
-            : NaN
-        if (code === 1) setStatus('denied')
-        else if (code === 2 || !navigator.geolocation) setStatus('unavailable')
-        else setStatus('error')
+        setLocationNote(null)
+        setStatus('error')
       }
     }
 
@@ -87,8 +91,9 @@ export function useEventWeather(
     enabled,
     status: enabled ? status : 'idle',
     byDay: enabled ? byDay : {},
+    locationNote: enabled ? locationNote : null,
     retry: () => {
-      cachedCoords = null
+      cachedLocation = null
       setRetryToken((t) => t + 1)
     },
   }

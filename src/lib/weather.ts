@@ -11,7 +11,19 @@ export type DayWeather = {
 
 export type GeoCoords = { lat: number; lon: number }
 
+export type ResolvedLocation = {
+  coords: GeoCoords
+  source: 'gps' | 'zip'
+  zip?: string
+}
+
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast'
+
+/** Default ZIP when browser location is denied or unavailable. */
+export const DEFAULT_WEATHER_ZIP = '93722'
+
+/** Approximate center of ZIP 93722 (Fresno, CA), already coarse-rounded. */
+export const DEFAULT_ZIP_COORDS: GeoCoords = { lat: 36.83, lon: -119.88 }
 
 /** Compact WMO weather interpretation codes (for aria-label). */
 export function labelForWeatherCode(code: number): string {
@@ -51,6 +63,15 @@ export function iconKindForWeatherCode(code: number): WeatherIconKind {
   return 'cloudy'
 }
 
+/** Round GPS to ~1 km precision before sending to the forecast API. */
+export function roundCoords(coords: GeoCoords, decimals = 2): GeoCoords {
+  const f = 10 ** decimals
+  return {
+    lat: Math.round(coords.lat * f) / f,
+    lon: Math.round(coords.lon * f) / f,
+  }
+}
+
 export function requestBrowserCoords(): Promise<GeoCoords> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -65,9 +86,14 @@ export function requestBrowserCoords(): Promise<GeoCoords> {
   })
 }
 
-/** Browser geolocation only — no IP/third-party lookup. */
-export async function resolveCoords(): Promise<GeoCoords> {
-  return requestBrowserCoords()
+/** Prefer browser location (rounded); fall back to ZIP 93722. */
+export async function resolveCoords(): Promise<ResolvedLocation> {
+  try {
+    const coords = roundCoords(await requestBrowserCoords())
+    return { coords, source: 'gps' }
+  } catch {
+    return { coords: DEFAULT_ZIP_COORDS, source: 'zip', zip: DEFAULT_WEATHER_ZIP }
+  }
 }
 
 /**

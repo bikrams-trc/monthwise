@@ -213,6 +213,7 @@ export default function App() {
             weatherEnabled={weather.enabled}
             weatherStatus={weather.status}
             weatherByDay={weather.byDay}
+            weatherLocationNote={weather.locationNote}
             onRetryWeather={weather.retry}
           />
           <MonthGrid
@@ -224,7 +225,7 @@ export default function App() {
         </div>
 
         <p className="footer-note">
-          Events stay on this device (localStorage). Defaults: Pooranmashi &amp; Sangrand each month (2026–2027 use chart dates; otherwise Not set). Current-month weather needs browser location permission (°F).
+          Events stay on this device (localStorage). Defaults: Pooranmashi &amp; Sangrand each month (2026–2027 use chart dates; otherwise Not set). Current-month weather uses your location when allowed, otherwise ZIP 93722 (°F).
         </p>
       </main>
 
