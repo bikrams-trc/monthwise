@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { EventList } from './components/EventList'
 import { EventModal } from './components/EventModal'
 import { ExportModal } from './components/ExportModal'
@@ -6,8 +6,10 @@ import { MonthGrid } from './components/MonthGrid'
 import { useEventWeather } from './hooks/useEventWeather'
 import {
   addEvent,
+  chartYearsAvailable,
   deleteEvent,
   getEventsForMonth,
+  importYearChart,
   updateEvent,
   type CalendarEvent,
 } from './lib/events'
@@ -26,8 +28,16 @@ export default function App() {
   const [tick, setTick] = useState(0)
   const [modal, setModal] = useState<null | { mode: 'add' | 'edit'; event?: CalendarEvent }>(null)
   const [exportOpen, setExportOpen] = useState(false)
+  const [importNote, setImportNote] = useState<string | null>(null)
 
   const refresh = useCallback(() => setTick((t) => t + 1), [])
+  const chartYears = useMemo(() => chartYearsAvailable(), [])
+
+  useEffect(() => {
+    if (!importNote) return
+    const id = window.setTimeout(() => setImportNote(null), 4200)
+    return () => window.clearTimeout(id)
+  }, [importNote])
 
   const events = useMemo(() => {
     void tick
@@ -67,6 +77,18 @@ export default function App() {
     deleteEvent(id)
     setModal(null)
     refresh()
+  }
+
+  function handleImportYear(targetYear: number) {
+    const result = importYearChart(targetYear)
+    if (!result.ok) {
+      setImportNote(`No chart available for ${targetYear}.`)
+      return
+    }
+    setYear(targetYear)
+    setMonth(0)
+    refresh()
+    setImportNote(`Imported ${targetYear} chart · ${result.events} defaults across ${result.months} months`)
   }
 
   return (
@@ -130,10 +152,23 @@ export default function App() {
             <button type="button" className="btn btn-primary" onClick={() => setModal({ mode: 'add' })}>
               Add observance
             </button>
-            <a className="btn btn-ghost" href="#calendar">
-              Browse months
-            </a>
+            {chartYears.map((y) => (
+              <button
+                key={y}
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => handleImportYear(y)}
+                title={`Load Pooranmashi & Sangrand dates for ${y}`}
+              >
+                Import {y}
+              </button>
+            ))}
           </div>
+          {importNote && (
+            <p className="import-note" role="status">
+              {importNote}
+            </p>
+          )}
         </div>
       </header>
 

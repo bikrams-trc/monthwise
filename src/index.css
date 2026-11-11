@@ -178,6 +178,12 @@ img { max-width: 100%; display: block; }
   color: var(--mist);
 }
 .cta-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.import-note {
+  margin: 0.45rem 0 0;
+  color: var(--gold-soft);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
 .btn {
   appearance: none;
   border: 1px solid transparent;
