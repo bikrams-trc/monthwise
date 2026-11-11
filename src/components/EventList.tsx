@@ -51,7 +51,7 @@ export function EventList({
   return (
     <section className="events-panel events-panel--main" aria-labelledby="events-heading">
       <h3 id="events-heading">
-        {monthName}
+        {monthName} {year}
         {monthNamePa ? <span className="pa"> {monthNamePa}</span> : null}
       </h3>
       <p className="events-sub">
