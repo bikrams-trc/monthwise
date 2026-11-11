@@ -51,7 +51,7 @@ export function iconKindForWeatherCode(code: number): WeatherIconKind {
   return 'cloudy'
 }
 
-export function requestCoords(): Promise<GeoCoords> {
+export function requestBrowserCoords(): Promise<GeoCoords> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
       reject(new Error('Geolocation is not available'))
@@ -60,9 +60,31 @@ export function requestCoords(): Promise<GeoCoords> {
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
       (err) => reject(err),
-      { enableHighAccuracy: false, timeout: 12_000, maximumAge: 15 * 60_000 },
+      { enableHighAccuracy: false, timeout: 8_000, maximumAge: 15 * 60_000 },
     )
   })
+}
+
+/** Approximate coords from public IP when browser geolocation is blocked/unavailable. */
+export async function requestIpCoords(): Promise<GeoCoords> {
+  const res = await fetch('https://get.geojs.io/v1/ip/geo.json')
+  if (!res.ok) throw new Error(`IP location failed (${res.status})`)
+  const data = (await res.json()) as { latitude?: string; longitude?: string }
+  const lat = Number(data.latitude)
+  const lon = Number(data.longitude)
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    throw new Error('IP location missing coordinates')
+  }
+  return { lat, lon }
+}
+
+/** Prefer precise browser location; fall back to IP estimate. */
+export async function resolveCoords(): Promise<GeoCoords> {
+  try {
+    return await requestBrowserCoords()
+  } catch {
+    return requestIpCoords()
+  }
 }
 
 /**

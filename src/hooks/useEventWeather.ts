@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   fetchMonthDayWeather,
-  requestCoords,
+  resolveCoords,
   type DayWeather,
   type GeoCoords,
 } from '../lib/weather'
@@ -51,9 +51,9 @@ export function useEventWeather(
     async function load() {
       setStatus(cachedCoords ? 'loading' : 'locating')
       try {
-        const coords = cachedCoords ?? (await requestCoords())
-        cachedCoords = coords
+        const coords = cachedCoords ?? (await resolveCoords())
         if (cancelled) return
+        cachedCoords = coords
         setStatus('loading')
         const map = await fetchMonthDayWeather(coords, year, month)
         if (cancelled) return
@@ -64,15 +64,9 @@ export function useEventWeather(
         }
         setByDay(next)
         setStatus('ready')
-      } catch (err) {
+      } catch {
         if (cancelled) return
-        const code =
-          err && typeof err === 'object' && 'code' in err
-            ? Number((err as GeolocationPositionError).code)
-            : null
-        if (code === 1) setStatus('denied')
-        else if (!navigator.geolocation) setStatus('unavailable')
-        else setStatus('error')
+        setStatus('error')
         setByDay({})
       }
     }

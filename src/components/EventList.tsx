@@ -19,7 +19,7 @@ function weatherStatusText(status: WeatherStatus | undefined): string | null {
   if (status === 'loading') return 'Loading weather…'
   if (status === 'denied') return 'Allow location to show weather for event days.'
   if (status === 'unavailable') return 'Location is not available in this browser.'
-  if (status === 'error') return 'Weather unavailable right now.'
+  if (status === 'error') return 'Could not load weather for this location.'
   return null
 }
 
