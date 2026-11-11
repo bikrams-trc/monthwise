@@ -117,6 +117,17 @@ function weekdayLabel(year: number, month: number, day: number): string {
   return WEEKDAYS[new Date(year, month, day).getDay()] ?? ''
 }
 
+/** Prefer a clear label; for Sangrand include Nanakshahi month from note. */
+function eventDisplayName(e: CalendarEvent): string {
+  const base = e.name?.trim() || 'Event'
+  if (e.templateId === 'sangrand') {
+    const fromNote = e.note?.match(/^Start of\s+(.+)$/i)?.[1]?.trim()
+    if (fromNote) return `Sangrand · ${fromNote}`
+    if (!/sangrand/i.test(base)) return `Sangrand · ${base}`
+  }
+  return base
+}
+
 const iconCache = new Map<string, string>()
 
 /** Phulkari-inspired floral motif (petals around a kesri center). */
@@ -362,8 +373,9 @@ export async function exportYearToPdf(
       })
       .sort((a, b) => (a.day ?? 99) - (b.day ?? 99) || a.name.localeCompare(b.name))
 
-    let ey = y + 32
-    const lineH = Math.min(18, (cellH - 42) / Math.max(events.length, 1))
+    let ey = y + 30
+    const rowH = Math.min(22, (cellH - 40) / Math.max(events.length, 1))
+    const nameMaxW = cellW - 44
 
     if (events.length === 0) {
       doc.setFontSize(8)
@@ -372,29 +384,30 @@ export async function exportYearToPdf(
     } else {
       for (const e of events) {
         const png = iconPng.get(e.id)
-        if (png) doc.addImage(png, 'PNG', x + 12, ey, 11, 11)
+        if (png) doc.addImage(png, 'PNG', x + 12, ey + 1, 11, 11)
         else {
           fill(doc, accent)
-          doc.circle(x + 17.5, ey + 5.5, 4.5, 'F')
+          doc.circle(x + 17.5, ey + 6.5, 4.5, 'F')
         }
         const isSangrand = e.templateId === 'sangrand'
         const isPooran = e.templateId === 'pooranmashi'
         const dayColor: RGB = isSangrand ? COLORS.akali : isPooran ? COLORS.gold : COLORS.kesri
         doc.setFont('helvetica', 'bold')
-        doc.setFontSize(8.5)
+        doc.setFontSize(8)
         textColor(doc, dayColor)
         const dayLabel =
           e.day == null
             ? 'Not set'
             : `${String(e.day).padStart(2, '0')} ${weekdayLabel(year, month, e.day)}`
-        doc.text(dayLabel, x + 28, ey + 9)
-        const dayWidth = doc.getTextWidth(dayLabel)
+        // Date + weekday on first line; full event name on second so it never gets clipped
+        doc.text(dayLabel, x + 28, ey + 7)
         doc.setFont('helvetica', 'bold')
-        doc.setFontSize(9)
+        doc.setFontSize(8.5)
         textColor(doc, COLORS.ink)
-        const name = doc.splitTextToSize(e.name, cellW - 42 - dayWidth)
-        doc.text(name[0] ?? e.name, x + 32 + dayWidth, ey + 9)
-        ey += lineH
+        const label = eventDisplayName(e)
+        const nameLines = doc.splitTextToSize(label, nameMaxW)
+        doc.text(nameLines[0] ?? label, x + 28, ey + 17)
+        ey += rowH
       }
     }
   }
