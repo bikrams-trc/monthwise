@@ -1,5 +1,10 @@
 import { PREDEFINED_OBSERVANCES } from '../data/observances'
-import { nanakshahiMonthFor } from '../data/yearDefaults'
+import {
+  hasYearDefaults,
+  nanakshahiMonthFor,
+  pooranmashiDaysFor,
+  sangrandDayFor,
+} from '../data/yearDefaults'
 
 export type CalendarEvent = {
   id: string
@@ -14,8 +19,8 @@ export type CalendarEvent = {
 }
 
 const STORAGE_KEY = 'monthwise-events-v1'
-/** v3: seed Pooranmashi/Sangrand without default day numbers */
-const SEEDED_KEY = 'monthwise-seeded-months-v3'
+/** v4: year-chart dates when available; otherwise Not set */
+const SEEDED_KEY = 'monthwise-seeded-months-v4'
 
 function uid(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
@@ -63,7 +68,8 @@ function upsertMonthDefault(
     (e) =>
       e.year === draft.year &&
       e.month === draft.month &&
-      e.templateId === draft.templateId,
+      e.templateId === draft.templateId &&
+      (draft.day == null ? e.day == null : e.day === draft.day),
   )
   if (idx >= 0) {
     const next = [...events]
@@ -89,19 +95,26 @@ export function ensureMonthDefaults(year: number, month: number): CalendarEvent[
     const pooran = PREDEFINED_OBSERVANCES.find((o) => o.id === 'pooranmashi')!
     const sangrand = PREDEFINED_OBSERVANCES.find((o) => o.id === 'sangrand')!
     const ns = nanakshahiMonthFor(year, month)
+    const charted = hasYearDefaults(year)
+    const pooranDays: Array<number | null> = charted
+      ? pooranmashiDaysFor(year, month)
+      : [null]
+    for (const day of pooranDays) {
+      const multi = charted && pooranDays.length > 1
+      events = upsertMonthDefault(events, {
+        year,
+        month,
+        day,
+        name: pooran.name,
+        namePa: pooran.namePa,
+        templateId: pooran.id,
+        note: multi ? `Full moon — ${day}` : pooran.note,
+      })
+    }
     events = upsertMonthDefault(events, {
       year,
       month,
-      day: null,
-      name: pooran.name,
-      namePa: pooran.namePa,
-      templateId: pooran.id,
-      note: pooran.note,
-    })
-    events = upsertMonthDefault(events, {
-      year,
-      month,
-      day: null,
+      day: charted ? sangrandDayFor(year, month) : null,
       name: sangrand.name,
       namePa: sangrand.namePa,
       templateId: sangrand.id,
