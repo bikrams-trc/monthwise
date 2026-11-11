@@ -19,6 +19,7 @@ type Props = {
   weatherEnabled?: boolean
   weatherStatus?: WeatherStatus
   weatherByDay?: Record<number, DayWeather>
+  weatherLocationNote?: string | null
   onRetryWeather?: () => void
 }
 
@@ -40,13 +41,14 @@ export function EventList({
   weatherEnabled,
   weatherStatus,
   weatherByDay,
+  weatherLocationNote,
   onRetryWeather,
 }: Props) {
   const statusText = weatherEnabled ? weatherStatusText(weatherStatus) : null
-  const showRetry =
-    weatherEnabled && (weatherStatus === 'denied' || weatherStatus === 'error') && onRetryWeather
+  const showRetry = weatherEnabled && weatherStatus === 'error' && onRetryWeather
   const monthName = MONTH_NAMES[month] ?? 'Month'
   const monthNamePa = MONTH_NAMES_PA[month]
+  const note = statusText ?? (weatherEnabled ? weatherLocationNote : null)
 
   return (
     <section className="events-panel events-panel--main" aria-labelledby="events-heading">
@@ -57,9 +59,9 @@ export function EventList({
       <p className="events-sub">
         Pooranmashi and Sangrand are added by default. Chart years use lunar dates; otherwise set the day when you know it.
       </p>
-      {statusText && (
+      {note && (
         <p className="weather-status">
-          {statusText}
+          {note}
           {showRetry && (
             <>
               {' '}
